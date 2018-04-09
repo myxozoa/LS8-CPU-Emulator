@@ -18,12 +18,11 @@ class RAM {
 
     /**
      * Read (load) MDR value from address MAR
-     * 
+     *
      * @returns MDR
      */
     read(MAR) {
-        console.log(this.mem[MAR].toString(2));
-        return parseInt(this.mem[MAR], 2);
+        return this.mem[MAR];
         // !!! IMPLEMENT ME
         // Read the value in address MAR and return it
     }
