@@ -86,25 +86,21 @@ class CPU {
     alu(op, regA, regB) {
         switch (op) {
             case 'ADD':
-                const result = this.reg[regA] + this.reg[regB];
-                this.reg[regA] = result;
+                this.reg[regA] = this.reg[regA] + this.reg[regB];
                 break;
             case 'SUB':
-                const result = this.reg[regA] - this.reg[regB];
-                this.reg[regA] = result;
+                this.reg[regA] = this.reg[regA] - this.reg[regB];
                 break;
             case 'MUL':
                 // !!! IMPLEMENT ME
-                const result = this.reg[regA] * this.reg[regB];
-                this.reg[regA] = result;
+                this.reg[regA] = this.reg[regA] * this.reg[regB];
                 break;
             case 'DIV':
-                if(this.reg[regB] === 0) {
+                if (this.reg[regB] === 0) {
                     console.error('Divide by zero error');
                     this.stopClock();
                 } else {
-                    const result = this.reg[regA] / this.reg[regB];
-                    this.reg[regA] = result;
+                    this.reg[regA] = this.reg[regA] / this.reg[regB];
                 }
                 break;
             case 'INC':
@@ -114,9 +110,17 @@ class CPU {
                 this.reg[regA] -= 1;
                 break;
             case 'CMP':
-                if(this.reg[regA] > this.reg[regB]) this.reg[4] = 0b00000010;
-                if(this.reg[regA] < this.reg[regB]) this.reg[4] = 0b00000100;
-                if(this.reg[regA] === this.reg[regB]) this.reg[4] = 0b00000001;
+                if (this.reg[regA] > this.reg[regB]) this.reg[4] = 0b00000010;
+                if (this.reg[regA] < this.reg[regB]) this.reg[4] = 0b00000100;
+                if (this.reg[regA] === this.reg[regB]) this.reg[4] = 0b00000001;
+                break;
+            case 'MOD':
+                if (this.reg[regB] === 0) {
+                    console.error('Divide by zero error');
+                    this.stopClock();
+                } else {
+                    this.reg[regA] = this.reg[regA] % this.reg[regB];
+                }
                 break;
         }
     }
@@ -161,19 +165,103 @@ class CPU {
         // console.log('REG: ', this.reg);
 
         switch (IR) {
-            case LDI:
-                // console.log('its doing LDI');
-                this.reg[operandA] = operandB;
+            case ADD:
+                this.apu('ADD', operandA, operandB);
                 break;
-            case PRN:
-                console.log('PRN: ', this.reg[operandA]);
+            case AND:
+                this.reg[operandA] = this.reg[operandA] & this.reg[operandB];
                 break;
-            case MUL:
-                this.apu('MUL', operandA, operandB);
+            case CALL:
+                // IDK the stack yet
+                break;
+            case CMP:
+                this.apu('CMP', operandA, operandB);
+                break;
+            case DEC:
+                this.apu('DEC', operandA, operandB);
                 break;
             case HLT:
                 // console.log('halting');
                 this.stopClock();
+                break;
+            case DIV:
+                this.apu('DIV', operandA, operandB);
+                break;
+            case INC:
+                this.apu('INC', operandA);
+            case INT:
+                // IDK interrupts yet
+                break;
+            case IRET:
+                // IDK interrupts yet
+                break;
+            case JEQ:
+                if (this.reg[4] & (0b1 !== 0)) {
+                    this.reg.PC = this.reg[operandA];
+                }
+                break;
+            case JGT:
+                if (this.reg[4] & (0b10 !== 0)) {
+                    this.reg.PC = this.reg[operandA];
+                }
+                break;
+            case JLT:
+                if (this.reg[4] & (0b100 !== 0)) {
+                    this.reg.PC = this.reg[operandA];
+                }
+                break;
+            case JMP:
+                this.reg.PC = this.reg[operandA];
+                break;
+            case JNE:
+                if (this.reg[4] & (0b1 === 0)) {
+                    this.reg.PC = this.reg[operandA];
+                }
+                break;
+            case LD:
+                this.reg[operandA] = this.reg[operandB];
+                break;
+            case LDI:
+                // console.log('its doing LDI');
+                this.reg[operandA] = operandB;
+                break;
+            case MOD:
+                this.apu('MOD', operandA, operandB);
+                break;
+            case MUL:
+                this.apu('MUL', operandA, operandB);
+                break;
+            case NOP:
+                break;
+            case NOT:
+                this.reg[operandA] = ~this.reg[operandA];
+                break;
+            case OR:
+                this.reg[operandA] = this.reg[operandA] | this.reg[operandB];
+                break;
+            case POP:
+                // IDK the stack yet
+                break;
+            case PRA:
+                console.log(String.fromCharCode(this.reg[operandA]));  // not completely sure
+                break;
+            case PRN:
+                console.log(this.reg[operandA]);
+                break;
+            case PUSH:
+                // IDK the stack yet
+                break;
+            case RET:
+                // IDK the stack yet
+                break;
+            case ST:
+                this.reg[operandB] = this.reg[operandA];
+                break;
+            case SUB:
+                this.apu('SUB', operandA, operandB);
+                break;
+            case XOR:
+                this.reg[operandA] = this.reg[operandA] ^ this.reg[operandB];
                 break;
             default:
                 break;
