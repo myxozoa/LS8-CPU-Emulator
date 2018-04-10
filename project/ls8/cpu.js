@@ -85,8 +85,38 @@ class CPU {
      */
     alu(op, regA, regB) {
         switch (op) {
+            case 'ADD':
+                const result = this.reg[regA] + this.reg[regB];
+                this.reg[regA] = result;
+                break;
+            case 'SUB':
+                const result = this.reg[regA] - this.reg[regB];
+                this.reg[regA] = result;
+                break;
             case 'MUL':
                 // !!! IMPLEMENT ME
+                const result = this.reg[regA] * this.reg[regB];
+                this.reg[regA] = result;
+                break;
+            case 'DIV':
+                if(this.reg[regB] === 0) {
+                    console.error('Divide by zero error');
+                    this.stopClock();
+                } else {
+                    const result = this.reg[regA] / this.reg[regB];
+                    this.reg[regA] = result;
+                }
+                break;
+            case 'INC':
+                this.reg[regA] += 1;
+                break;
+            case 'DEC':
+                this.reg[regA] -= 1;
+                break;
+            case 'CMP':
+                if(this.reg[regA] > this.reg[regB]) this.reg[4] = 0b00000010;
+                if(this.reg[regA] < this.reg[regB]) this.reg[4] = 0b00000100;
+                if(this.reg[regA] === this.reg[regB]) this.reg[4] = 0b00000001;
                 break;
         }
     }
@@ -139,8 +169,7 @@ class CPU {
                 console.log('PRN: ', this.reg[operandA]);
                 break;
             case MUL:
-                const result = operandA * operandB;
-                console.log(result);
+                this.apu('MUL', operandA, operandB);
                 break;
             case HLT:
                 // console.log('halting');

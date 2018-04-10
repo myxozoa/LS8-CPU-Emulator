@@ -26,19 +26,24 @@ function loadMemory() {
     //     "00000101",
     //     "00000001",
     // ];
-    fs.readFile(process.argv[2], 'utf-8', (err, data) => {
-        if(err) throw new Error(err);
+    if(!process.argv[2]) {
+        console.error('Please supply a program to run \n i.e. `node ls8 print8.ls8`');
+        process.exit(0);
+    } else {
+        fs.readFile(process.argv[2], 'utf-8', (err, data) => {
+            if(err) throw new Error(err);
 
-        const file = data.split('\n');
-        for (let i = 0; i < file.length; i++) {
-            const comment = file[i].indexOf('#');
-            if(comment !== -1) {
-                file[i] = file[i].substr(0, comment);
+            const file = data.split('\n');
+            for (let i = 0; i < file.length; i++) {
+                const comment = file[i].indexOf('#');
+                if(comment !== -1) {
+                    file[i] = file[i].substr(0, comment);
+                }
+                file[i] = file[i].trim();
+                cpu.poke(i, parseInt(file[i], 2));
             }
-            file[i] = file[i].trim();
-            cpu.poke(i, parseInt(file[i], 2));
-        }
-    });
+        });
+    }
 
     // Load the program into the CPU's memory a byte at a time
 
