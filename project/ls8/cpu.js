@@ -89,7 +89,7 @@ class CPU {
         // !!! IMPLEMENT ME
         // console.log('OP-A: ', operandA);
         // console.log('OP-B: ', operandB);
-        // console.log('IR: ', IR.toString());
+        // console.log('IR: ', IR.toString(2));
         // console.log('PC: ', this.reg.PC);
         // console.log('RAM[0]: ', this.ram.mem[0]);
         // console.log('RAM[1]: ', this.ram.mem[1]);
@@ -97,20 +97,22 @@ class CPU {
         // console.log('RAM[3]: ', this.ram.mem[3]);
         // console.log('RAM[4]: ', this.ram.mem[4]);
         // console.log('RAM[5]: ', this.ram.mem[5]);
+        // console.log('REG: ', this.reg);
+        // console.log('--------------------------')
 
 
-        switch (IR) {
-            case '10011001': //LDI
+        switch (IR.toString(2)) {
+            case '10011001': // LDI
             // console.log('its doing LDI');
-                this.ram.write(operandA, operandB);
+                this.reg[operandA] = operandB;
                 break;
-            case '01000011': // PRN
-                console.log(parseInt(this.ram.read(operandA), 2));
+            case '1000011': // PRN
+                console.log('PRN: ', this.reg[operandA]);
                 break;
-            case '10101010':
-                const result = parseInt(operandA, 2) * parseInt(operandB, 2);
+            case '10101010': // MLT
+                const result = operandA * operandB;
                 console.log(result);
-            case '00000001': // HLT
+            case '1': // HLT
                 // console.log('halting');
                 this.stopClock();
             default:
@@ -123,8 +125,8 @@ class CPU {
         // for any particular instruction.
 
         // !!! IMPLEMENT ME
-        // console.log('what');
-        this.reg.PC += ( parseInt(IR.toString().slice(0, 2), 2) + 1 );
+        // console.log('jmp: ', (IR & 11000000) >> 6);
+        this.reg.PC += (((IR & 11000000) >> 6) + 1 );
 
         // if(this.reg.PC > 10) {
         //     this.stopClock();
