@@ -5,10 +5,37 @@
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
-const LDI = 0b10011001;
-const PRN = 0b01000011;
-const MUL = 0b10101010;
+const ADD = 0b10101000;
+const AND = 0b10110011;
+const CALL = 0b01001000;
+const CMP = 0b10100000;
+const DEC = 0b01111001;
+const DIV = 0b10101011;
 const HLT = 0b00000001;
+const INC = 0b01111000;
+const INT = 0b01001010;
+const IRET = 0b00001011;
+const JEQ = 0b01010001;
+const JGT = 0b01010100;
+const JLT = 0b01010011;
+const JMP = 0b01010000;
+const JNE = 0b01010010;
+const LD = 0b10011000;
+const LDI = 0b10011001;
+const MOD = 0b10101100;
+const MUL = 0b10101010;
+const NOP = 0b00000000;
+const NOT = 0b01110000;
+const OR = 0b10110001;
+const POP = 0b01001100;
+const PRA = 0b01000010;
+const PRN = 0b01000011;
+const PUSH = 0b01001101;
+const RET = 0b00001001;
+const ST = 0b10011010;
+const SUB = 0b10101001;
+const XOR = 0b10110010;
+
 class CPU {
     /**
      * Initialize the CPU
@@ -114,9 +141,11 @@ class CPU {
             case MUL:
                 const result = operandA * operandB;
                 console.log(result);
+                break;
             case HLT:
                 // console.log('halting');
                 this.stopClock();
+                break;
             default:
                 break;
         }
