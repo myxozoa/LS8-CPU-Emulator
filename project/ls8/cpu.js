@@ -99,15 +99,17 @@ class CPU {
         // console.log('RAM[5]: ', this.ram.mem[5]);
 
 
-        switch (IR.toString()) {
+        switch (IR) {
             case '10011001': //LDI
             // console.log('its doing LDI');
                 this.ram.write(operandA, operandB);
                 break;
             case '01000011': // PRN
-                // console.log('its printing');
-                console.log(this.ram.read(operandA));
+                console.log(parseInt(this.ram.read(operandA), 2));
                 break;
+            case '10101010':
+                const result = parseInt(operandA, 2) * parseInt(operandB, 2);
+                console.log(result);
             case '00000001': // HLT
                 // console.log('halting');
                 this.stopClock();
