@@ -92,7 +92,6 @@ class CPU {
                 this.reg[regA] = this.reg[regA] - this.reg[regB];
                 break;
             case 'MUL':
-                // !!! IMPLEMENT ME
                 this.reg[regA] = this.reg[regA] * this.reg[regB];
                 break;
             case 'DIV':
@@ -166,7 +165,7 @@ class CPU {
 
         switch (IR) {
             case ADD:
-                this.apu('ADD', operandA, operandB);
+                this.alu('ADD', operandA, operandB);
                 break;
             case AND:
                 this.reg[operandA] = this.reg[operandA] & this.reg[operandB];
@@ -175,20 +174,19 @@ class CPU {
                 // IDK the stack yet
                 break;
             case CMP:
-                this.apu('CMP', operandA, operandB);
+                this.alu('CMP', operandA, operandB);
                 break;
             case DEC:
-                this.apu('DEC', operandA, operandB);
+                this.alu('DEC', operandA, operandB);
                 break;
             case HLT:
-                // console.log('halting');
                 this.stopClock();
                 break;
             case DIV:
-                this.apu('DIV', operandA, operandB);
+                this.alu('DIV', operandA, operandB);
                 break;
             case INC:
-                this.apu('INC', operandA);
+                this.alu('INC', operandA);
             case INT:
                 // IDK interrupts yet
                 break;
@@ -222,14 +220,13 @@ class CPU {
                 this.reg[operandA] = this.reg[operandB];
                 break;
             case LDI:
-                // console.log('its doing LDI');
                 this.reg[operandA] = operandB;
                 break;
             case MOD:
-                this.apu('MOD', operandA, operandB);
+                this.alu('MOD', operandA, operandB);
                 break;
             case MUL:
-                this.apu('MUL', operandA, operandB);
+                this.alu('MUL', operandA, operandB);
                 break;
             case NOP:
                 break;
@@ -258,7 +255,7 @@ class CPU {
                 this.reg[operandB] = this.reg[operandA];
                 break;
             case SUB:
-                this.apu('SUB', operandA, operandB);
+                this.alu('SUB', operandA, operandB);
                 break;
             case XOR:
                 this.reg[operandA] = this.reg[operandA] ^ this.reg[operandB];
@@ -274,7 +271,6 @@ class CPU {
         // for any particular instruction.
 
         // !!! IMPLEMENT ME
-        // console.log('jmp: ', (IR & 11000000) >> 6);
         this.reg.PC += ((IR & 11000000) >>> 6) + 1;
     }
 }
