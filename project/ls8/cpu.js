@@ -5,6 +5,10 @@
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
+const LDI = 0b10011001;
+const PRN = 0b01000011;
+const MUL = 0b10101010;
+const HLT = 0b00000001;
 class CPU {
     /**
      * Initialize the CPU
@@ -98,26 +102,25 @@ class CPU {
         // console.log('RAM[4]: ', this.ram.mem[4]);
         // console.log('RAM[5]: ', this.ram.mem[5]);
         // console.log('REG: ', this.reg);
-        // console.log('--------------------------')
 
-
-        switch (IR.toString(2)) {
-            case '10011001': // LDI
-            // console.log('its doing LDI');
+        switch (IR) {
+            case LDI:
+                // console.log('its doing LDI');
                 this.reg[operandA] = operandB;
                 break;
-            case '1000011': // PRN
+            case PRN:
                 console.log('PRN: ', this.reg[operandA]);
                 break;
-            case '10101010': // MLT
+            case MUL:
                 const result = operandA * operandB;
                 console.log(result);
-            case '1': // HLT
+            case HLT:
                 // console.log('halting');
                 this.stopClock();
             default:
                 break;
         }
+        // console.log('--------------------------')
 
         // Increment the PC register to go to the next instruction. Instructions
         // can be 1, 2, or 3 bytes long. Hint: the high 2 bits of the
@@ -126,12 +129,7 @@ class CPU {
 
         // !!! IMPLEMENT ME
         // console.log('jmp: ', (IR & 11000000) >> 6);
-        this.reg.PC += (((IR & 11000000) >> 6) + 1 );
-
-        // if(this.reg.PC > 10) {
-        //     this.stopClock();
-        // }
-
+        this.reg.PC += ((IR & 11000000) >>> 6) + 1;
     }
 }
 
