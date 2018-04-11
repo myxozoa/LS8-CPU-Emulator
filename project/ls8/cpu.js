@@ -128,29 +128,9 @@ class CPU {
      * Advances the CPU one cycle
      */
     tick() {
-        // console.log(this.ram);
-        // Load the instruction register (IR--can just be a local variable here)
-        // from the memory address pointed to by the PC. (I.e. the PC holds the
-        // index into memory of the instruction that's about to be executed
-        // right now.)
-
-        // !!! IMPLEMENT ME
-        let IR = this.ram.read(this.reg.PC);
-
-        // Debugging output
-        // console.log(`${this.reg.PC}: ${IR.toString(2)}`);
-
-        // Get the two bytes in memory _after_ the PC in case the instruction
-        // needs them.
-
-        // !!! IMPLEMENT ME
         let operandA = this.ram.read(this.reg.PC + 1);
         let operandB = this.ram.read(this.reg.PC + 2);
 
-        // Execute the instruction. Perform the actions for the instruction as
-        // outlined in the LS-8 spec.
-
-        // !!! IMPLEMENT ME
         // console.log('OP-A: ', operandA);
         // console.log('OP-B: ', operandB);
         // console.log('IR: ', IR.toString(2));
@@ -163,114 +143,103 @@ class CPU {
         // console.log('RAM[5]: ', this.ram.mem[5]);
         // console.log('REG: ', this.reg);
 
-        switch (IR) {
-            case ADD:
-                this.alu('ADD', operandA, operandB);
-                break;
-            case AND:
-                this.reg[operandA] = this.reg[operandA] & this.reg[operandB];
-                break;
-            case CALL:
-                // IDK the stack yet
-                break;
-            case CMP:
-                this.alu('CMP', operandA, operandB);
-                break;
-            case DEC:
-                this.alu('DEC', operandA, operandB);
-                break;
-            case HLT:
-                this.stopClock();
-                break;
-            case DIV:
-                this.alu('DIV', operandA, operandB);
-                break;
-            case INC:
-                this.alu('INC', operandA);
-            case INT:
-                // IDK interrupts yet
-                break;
-            case IRET:
-                // IDK interrupts yet
-                break;
-            case JEQ:
-                if (this.reg[4] & (0b1 !== 0)) {
-                    this.reg.PC = this.reg[operandA];
-                }
-                break;
-            case JGT:
-                if (this.reg[4] & (0b10 !== 0)) {
-                    this.reg.PC = this.reg[operandA];
-                }
-                break;
-            case JLT:
-                if (this.reg[4] & (0b100 !== 0)) {
-                    this.reg.PC = this.reg[operandA];
-                }
-                break;
-            case JMP:
-                this.reg.PC = this.reg[operandA];
-                break;
-            case JNE:
-                if (this.reg[4] & (0b1 === 0)) {
-                    this.reg.PC = this.reg[operandA];
-                }
-                break;
-            case LD:
-                this.reg[operandA] = this.reg[operandB];
-                break;
-            case LDI:
-                this.reg[operandA] = operandB;
-                break;
-            case MOD:
-                this.alu('MOD', operandA, operandB);
-                break;
-            case MUL:
-                this.alu('MUL', operandA, operandB);
-                break;
-            case NOP:
-                break;
-            case NOT:
-                this.reg[operandA] = ~this.reg[operandA];
-                break;
-            case OR:
-                this.reg[operandA] = this.reg[operandA] | this.reg[operandB];
-                break;
-            case POP:
-                // IDK the stack yet
-                break;
-            case PRA:
-                console.log(String.fromCharCode(this.reg[operandA]));  // not completely sure
-                break;
-            case PRN:
-                console.log(this.reg[operandA]);
-                break;
-            case PUSH:
-                // IDK the stack yet
-                break;
-            case RET:
-                // IDK the stack yet
-                break;
-            case ST:
-                this.reg[operandB] = this.reg[operandA];
-                break;
-            case SUB:
-                this.alu('SUB', operandA, operandB);
-                break;
-            case XOR:
-                this.reg[operandA] = this.reg[operandA] ^ this.reg[operandB];
-                break;
-            default:
-                break;
-        }
+        const branchTable = [];
+        const handle_ADD = () => { this.alu('ADD', operandA, operandB); }
+        branchTable[ADD] = handle_ADD;
+
+        const handle_AND = () => { this.reg[operandA] = this.reg[operandA] & this.reg[operandB]; }
+        branchTable[AND] = handle_AND;
+
+        const handle_CALL = () => { /* IDK the stack yet */ }
+        branchTable[CALL] = handle_CALL;
+
+        const handle_CMP = () => { this.alu('CMP', operandA, operandB); }
+        branchTable[CMP] = handle_CMP;
+
+        const handle_DEC = () => { this.alu('DEC', operandA, operandB); }
+        branchTable[DEC] = handle_DEC;
+
+        const handle_HLT = () => { this.stopClock(); }
+        branchTable[HLT] = handle_HLT;
+
+        const handle_DIV = () => { this.alu('DIV', operandA, operandB); }
+        branchTable[DIV] = handle_DIV;
+
+        const handle_INC = () => { this.alu('INC', operandA); }
+        branchTable[INC] = handle_INC;
+
+        const handle_INT = () => { /* IDK interrupts yet */ }
+        branchTable[INT] = handle_INT;
+
+        const handle_IRET = () => { /* IDK interrupts yet */ }
+        branchTable[IRET] = handle_IRET;
+
+        const handle_JEQ = () => { if (this.reg[4] & (0b1 !== 0)) this.reg.PC = this.reg[operandA]; }
+        branchTable[JEQ] = handle_JEQ;
+
+        const handle_JGT = () => { if (this.reg[4] & (0b10 !== 0)) this.reg.PC = this.reg[operandA]; }
+        branchTable[JGT] =  handle_JGT;
+
+        const handle_JLT = () => { if (this.reg[4] & (0b100 !== 0)) this.reg.PC = this.reg[operandA]; }
+        branchTable[JLT] = handle_JLT;
+
+        const handle_JMP = () => { this.reg.PC = this.reg[operandA]; }
+        branchTable[JMP] = handle_JMP;
+
+        const handle_JNE = () => { if (this.reg[4] & (0b1 === 0)) this.reg.PC = this.reg[operandA]; }
+        branchTable[JLT] = handle_JLT;
+
+        const handle_LD = () => { this.reg[operandA] = this.reg[operandB]; }
+        branchTable[LD] = handle_LD;
+
+        const handle_LDI = () => { this.reg[operandA] = operandB; }
+        branchTable[LDI] = handle_LDI;
+
+        const handle_MOD = () => { this.alu('MOD', operandA, operandB); }
+        branchTable[MOD] = handle_MOD;
+
+        const handle_MUL = () => { this.alu('MUL', operandA, operandB); }
+        branchTable[MUL] = handle_MUL;
+
+        const handle_NOP = () => { return; }
+        branchTable[NOP] = handle_NOP;
+
+        const handle_NOT = () => { this.reg[operandA] = ~this.reg[operandA]; }
+        branchTable[NOT] = handle_NOT;
+
+        const handle_OR = () => { this.reg[operandA] = this.reg[operandA] | this.reg[operandB]; }
+        branchTable[OR] = handle_OR;
+
+        const handle_POP = () => { /* IDK the stack yet */ }
+        branchTable[POP] = handle_POP;
+
+        const handle_PRA = () => { console.log(String.fromCharCode(this.reg[operandA])); /* not completely sure */ }
+        branchTable[PRA] = handle_PRA;
+
+        const handle_PRN = () => { console.log(this.reg[operandA]); }
+        branchTable[PRN] = handle_PRN;
+
+        const handle_PUSH = () => { /* IDK the stack yet */ }
+        branchTable[PUSH] = handle_PUSH;
+
+        const handle_RET = () => { /* IDK the stack yet */ }
+        branchTable[RET] = handle_RET;
+
+        const handle_ST = () => { this.reg[operandB] = this.reg[operandA]; }
+        branchTable[ST] = handle_ST;
+
+        const handle_SUB = () => { this.alu('SUB', operandA, operandB); }
+        branchTable[SUB] = handle_SUB;
+
+        const handle_XOR = () => { this.reg[operandA] = this.reg[operandA] ^ this.reg[operandB]; }
+        branchTable[XOR] = handle_XOR;
+
+
+        let IR = this.ram.read(this.reg.PC);
+        let handler = branchTable[IR];
+
+        handler();
         // console.log('--------------------------')
-
-        // Increment the PC register to go to the next instruction. Instructions
-        // can be 1, 2, or 3 bytes long. Hint: the high 2 bits of the
-        // instruction byte tells you how many bytes follow the instruction byte
-        // for any particular instruction.
-
-        // !!! IMPLEMENT ME
         this.reg.PC += ((IR & 11000000) >>> 6) + 1;
     }
 }

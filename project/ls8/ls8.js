@@ -40,7 +40,9 @@ function loadMemory() {
                     file[i] = file[i].substr(0, comment);
                 }
                 file[i] = file[i].trim();
-                cpu.poke(i, parseInt(file[i], 2));
+                if(file[i] !== '') {
+                    cpu.poke(i, parseInt(file[i], 2));
+                }
             }
         });
     }
