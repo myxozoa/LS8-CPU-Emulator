@@ -44,7 +44,7 @@ class CPU {
         this.ram = ram;
 
         this.reg = new Array(8).fill(0); // General-purpose registers R0-R7
-        this.reg[7] = 0xF4; // SP
+        this.reg[8] = 0xF4; // SP
 
         // Special-purpose registers
         this.reg.PC = 0; // Program Counter
@@ -129,26 +129,37 @@ class CPU {
      * Advances the CPU one cycle
      */
     tick() {
+        let IR = this.ram.read(this.reg.PC);
+        const nextInstruction = ((IR & 11000000) >>> 6);
+
         let operandA = this.ram.read(this.reg.PC + 1);
         let operandB = this.ram.read(this.reg.PC + 2);
+
+        let call = false;
 
         // console.log('OP-A: ', operandA);
         // console.log('OP-B: ', operandB);
         // console.log('PC: ', this.reg.PC);
-        // console.log('SP: ', this.reg[7]);
+        // console.log('SP: ', this.reg[8]);
         // console.log('RAM[0]: ', this.ram.mem[0]);
         // console.log('RAM[1]: ', this.ram.mem[1]);
         // console.log('RAM[2]: ', this.ram.mem[2]);
         // console.log('RAM[3]: ', this.ram.mem[3]);
         // console.log('RAM[4]: ', this.ram.mem[4]);
         // console.log('RAM[5]: ', this.ram.mem[5]);
+        // console.log('RAM[F4]: ', this.ram.mem[0xF4]);
+        // console.log('RAM[F3]: ', this.ram.mem[0xF3]);
+        // console.log('RAM[F2]: ', this.ram.mem[0xF2]);
+        // console.log('TEST-----: ', this.ram.read(this.reg.PC + nextInstruction));
+        // console.log('TEST NUM-----: ', this.reg.PC + nextInstruction);
+        // console.log('RAM[24]: ', this.ram.mem[24]);
         // console.log('REG: ', this.reg);
         // console.log('IR: ', IR.toString(2));
 
         const branchTable = [];
         const handle_ADD = () => { this.alu('ADD', operandA, operandB); }
         const handle_AND = () => { this.reg[operandA] = this.reg[operandA] & this.reg[operandB]; }
-        const handle_CALL = () => { /* IDK the stack yet */ }
+        const handle_CALL = () => { this.alu('DEC', 8); this.ram.write(this.reg[8], this.reg.PC + nextInstruction); this.reg.PC = this.reg[operandA]; call = true; }
         const handle_CMP = () => { this.alu('CMP', operandA, operandB); }
         const handle_DEC = () => { this.alu('DEC', operandA, operandB); }
         const handle_HLT = () => { this.stopClock(); }
@@ -168,11 +179,11 @@ class CPU {
         const handle_NOP = () => { return; }
         const handle_NOT = () => { this.reg[operandA] = ~this.reg[operandA]; }
         const handle_OR = () => { this.reg[operandA] = this.reg[operandA] | this.reg[operandB]; }
-        const handle_POP = () => { this.reg[operandA] = this.ram.read(this.reg[7]); this.alu('INC', 7); }
+        const handle_POP = () => { this.reg[operandA] = this.ram.read(this.reg[8]); this.alu('INC', 8); }
         const handle_PRA = () => { console.log(String.fromCharCode(this.reg[operandA])); /* not completely sure */ }
         const handle_PRN = () => { console.log(this.reg[operandA]); }
-        const handle_PUSH = () => { this.alu('DEC', 7); this.ram.write(this.reg[7], this.reg[operandA]); }
-        const handle_RET = () => { /* soon */ }
+        const handle_PUSH = () => { this.alu('DEC', 8); this.ram.write(this.reg[8], this.reg[operandA]); }
+        const handle_RET = () => { this.reg.PC = this.ram.read(this.reg[8]); this.alu('INC', 7); }
         const handle_ST = () => { this.reg[operandB] = this.reg[operandA]; }
         const handle_SUB = () => { this.alu('SUB', operandA, operandB); }
         const handle_XOR = () => { this.reg[operandA] = this.reg[operandA] ^ this.reg[operandB]; }
@@ -209,12 +220,17 @@ class CPU {
         branchTable[XOR] = handle_XOR;
 
 
-        let IR = this.ram.read(this.reg.PC);
         let handler = branchTable[IR];
 
         handler();
         // console.log('--------------------------')
-        this.reg.PC += ((IR & 11000000) >>> 6) + 1;
+        if(!call) {
+            this.reg.PC += nextInstruction + 1;
+        }
+
+        // if(this.reg.PC > 30) {
+        //     this.stopClock();
+        // }
     }
 }
 
