@@ -36,6 +36,10 @@ const ST = 0b10011010;
 const SUB = 0b10101001;
 const XOR = 0b10110010;
 
+const IM = 5;
+const IS = 6;
+const SP = 7;
+
 class CPU {
     /**
      * Initialize the CPU
@@ -44,10 +48,13 @@ class CPU {
         this.ram = ram;
 
         this.reg = new Array(8).fill(0); // General-purpose registers R0-R7
-        this.reg[8] = 0xF4; // SP
+        this.reg[SP] = 0xF4; // SP
 
         // Special-purpose registers
         this.reg.PC = 0; // Program Counter
+
+        this.calling = false;
+        this.interruptsEnabled = true;
     }
 
     /**
@@ -143,16 +150,15 @@ class CPU {
     tick() {
         let IR = this.ram.read(this.reg.PC);
         const nextInstruction = ((IR & 11000000) >>> 6);
+        this.calling = false;
 
         let operandA = this.ram.read(this.reg.PC + 1);
         let operandB = this.ram.read(this.reg.PC + 2);
 
-        let call = false;
-
         // console.log('OP-A: ', operandA);
         // console.log('OP-B: ', operandB);
         // console.log('PC: ', this.reg.PC);
-        // console.log('SP: ', this.reg[8]);
+        // console.log('SP: ', this.reg[SP]);
         // console.log('RAM[0]: ', this.ram.mem[0]);
         // console.log('RAM[1]: ', this.ram.mem[1]);
         // console.log('RAM[2]: ', this.ram.mem[2]);
@@ -165,9 +171,12 @@ class CPU {
         // console.log('REG: ', this.reg);
         // console.log('IR: ', IR.toString(2));
 
+        const _push = (itm) => { this.alu('DEC', SP); this.ram.write(this.reg[SP], itm);  }
+        const _pop = () => { const res = this.ram.read(this.reg[SP]); this.alu('INC', SP); return res; }
+
         const handle_ADD = () => { this.alu('ADD', operandA, operandB); }
         const handle_AND = () => { this.alu('AND', operandA, operandB); }
-        const handle_CALL = () => { this.alu('DEC', 8); this.ram.write(this.reg[8], this.reg.PC + nextInstruction); this.reg.PC = this.reg[operandA]; call = true; }
+        const handle_CALL = () => { _push(this.reg.PC + nextInstruction); this.reg.PC = this.reg[operandA]; this.calling = true; }
         const handle_CMP = () => { this.alu('CMP', operandA, operandB); }
         const handle_DEC = () => { this.alu('DEC', operandA, operandB); }
         const handle_HLT = () => { this.stopClock(); }
@@ -187,11 +196,11 @@ class CPU {
         const handle_NOP = () => { return; }
         const handle_NOT = () => { this.alu('NOT', operandA); }
         const handle_OR = () => { this.alu('OR', operandA, operandB); }
-        const handle_POP = () => { this.reg[operandA] = this.ram.read(this.reg[8]); this.alu('INC', 8); }
+        const handle_POP = () => { this.reg[operandA] = _pop(); }
         const handle_PRA = () => { console.log(String.fromCharCode(this.reg[operandA])); /* not completely sure */ }
         const handle_PRN = () => { console.log(this.reg[operandA]); }
-        const handle_PUSH = () => { this.alu('DEC', 8); this.ram.write(this.reg[8], this.reg[operandA]); }
-        const handle_RET = () => { this.reg.PC = this.ram.read(this.reg[8]); this.alu('INC', 7); }
+        const handle_PUSH = () => { this.alu('DEC', SP); this.ram.write(this.reg[SP], this.reg[operandA]); }
+        const handle_RET = () => { this.reg.PC = _pop(); }
         const handle_ST = () => { this.reg[operandB] = this.reg[operandA]; }
         const handle_SUB = () => { this.alu('SUB', operandA, operandB); }
         const handle_XOR = () => { this.alu('XOR', operandA, operandB); }
@@ -233,13 +242,10 @@ class CPU {
 
         handler();
         // console.log('--------------------------')
-        if(!call) {
+        if(!this.calling) {
             this.reg.PC += nextInstruction + 1;
         }
 
-        // if(this.reg.PC > 30) {
-        //     this.stopClock();
-        // }
     }
 }
 
