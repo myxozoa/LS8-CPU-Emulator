@@ -44,6 +44,7 @@ class CPU {
         this.ram = ram;
 
         this.reg = new Array(8).fill(0); // General-purpose registers R0-R7
+        this.reg[7] = 0xF4; // SP
 
         // Special-purpose registers
         this.reg.PC = 0; // Program Counter
@@ -133,8 +134,8 @@ class CPU {
 
         // console.log('OP-A: ', operandA);
         // console.log('OP-B: ', operandB);
-        // console.log('IR: ', IR.toString(2));
         // console.log('PC: ', this.reg.PC);
+        // console.log('SP: ', this.reg[7]);
         // console.log('RAM[0]: ', this.ram.mem[0]);
         // console.log('RAM[1]: ', this.ram.mem[1]);
         // console.log('RAM[2]: ', this.ram.mem[2]);
@@ -142,6 +143,7 @@ class CPU {
         // console.log('RAM[4]: ', this.ram.mem[4]);
         // console.log('RAM[5]: ', this.ram.mem[5]);
         // console.log('REG: ', this.reg);
+        // console.log('IR: ', IR.toString(2));
 
         const branchTable = [];
         const handle_ADD = () => { this.alu('ADD', operandA, operandB); }
@@ -166,11 +168,11 @@ class CPU {
         const handle_NOP = () => { return; }
         const handle_NOT = () => { this.reg[operandA] = ~this.reg[operandA]; }
         const handle_OR = () => { this.reg[operandA] = this.reg[operandA] | this.reg[operandB]; }
-        const handle_POP = () => { /* IDK the stack yet */ }
+        const handle_POP = () => { this.reg[operandA] = this.ram.read(this.reg[7]); this.alu('INC', 7); }
         const handle_PRA = () => { console.log(String.fromCharCode(this.reg[operandA])); /* not completely sure */ }
         const handle_PRN = () => { console.log(this.reg[operandA]); }
-        const handle_PUSH = () => { /* IDK the stack yet */ }
-        const handle_RET = () => { /* IDK the stack yet */ }
+        const handle_PUSH = () => { this.alu('DEC', 7); this.ram.write(this.reg[7], this.reg[operandA]); }
+        const handle_RET = () => { /* soon */ }
         const handle_ST = () => { this.reg[operandB] = this.reg[operandA]; }
         const handle_SUB = () => { this.alu('SUB', operandA, operandB); }
         const handle_XOR = () => { this.reg[operandA] = this.reg[operandA] ^ this.reg[operandB]; }
