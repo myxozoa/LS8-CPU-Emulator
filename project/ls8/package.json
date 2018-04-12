@@ -1,0 +1,12 @@
+{
+  "name": "ls8",
+  "version": "1.0.0",
+  "description": "Objective: to gain a deeper understanding of how a CPU functions at a\r low level.",
+  "main": "ls8.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "keypress": "^0.2.1"
+  }
+}

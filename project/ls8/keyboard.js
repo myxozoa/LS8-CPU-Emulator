@@ -1,35 +1,51 @@
-const keyPressedAddress = 0xF4;
-const ctrlC = '\u0003';
-
+const keyPressedAddress = 0xf4;
+const asciiReturn = 10;
+const asciiSpace = 32;
+const asciiBackspace = 8;
+const keypress = require('keypress');
+keypress(process.stdin);
 class Keyboard {
-  constructor(cpu) {
-    this.cpu = cpu;
-    this.keyhandler = null;
-    cpu.addPeripheral(this);
+    constructor(cpu) {
+        this.cpu = cpu;
+        this.keyhandler = null;
+        cpu.addPeripheral(this);
 
-    this.start();
-  }
+        this.start();
+    }
 
-  stop() {
-    process.stdin.setRawMode(false);
-    process.stdin.removeListener('data', this.keyhandler);
-    process.stdin.end();
-  }
-  start() {
-    process.stdin.setRawMode(true);
-    process.stdin.setEncoding('utf-8');
+    stop() {
+        process.stdin.setRawMode(false);
+        process.stdin.end();
+        process.exit();
+    }
+    start() {
+        process.stdin.setRawMode(true);
+        process.stdin.resume();
 
-    this.keyhandler = (key) => {
-      if (key === ctrlC ) {
-        this.cpu.stopClock();
-      }
-      this.cpu.poke(keyPressedAddress, key.charCodeAt(0));
+        process.stdin.on('keypress', (ch, key) => {
+            if (key && key.ctrl && key.name == 'c') {
+                this.cpu.stopClock();
+            }
+            switch (key.name) {
+                case 'escape':
+                    this.cpu.stopClock();
+                    break;
+                case 'return':
+                    this.cpu.poke(keyPressedAddress, asciiReturn);
+                    break;
+                case 'space':
+                    this.cpu.poke(keyPressedAddress, asciiSpace);
+                    break;
+                case 'backspace':
+                    this.cpu.poke(keyPressedAddress, asciiBackspace);
+                    break;
+                default:
+                    this.cpu.poke(keyPressedAddress, key.name.charCodeAt(0));
+            }
 
-      this.cpu.raiseInterrupt(1);
-    };
-
-    process.stdin.on('data', this.keyhandler);
-  }
+            this.cpu.raiseInterrupt(1);
+        });
+    }
 }
 
 module.exports = Keyboard;
