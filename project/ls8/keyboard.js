@@ -1,4 +1,5 @@
 const keyPressedAddress = 0xF4;
+const ctrlC = '\u0003';
 
 class Keyboard {
   constructor(cpu) {
@@ -19,7 +20,7 @@ class Keyboard {
     process.stdin.setEncoding('utf-8');
 
     this.keyhandler = (key) => {
-      if (key === '\u0003' ) {
+      if (key === ctrlC ) {
         this.cpu.stopClock();
       }
       this.cpu.poke(keyPressedAddress, key.charCodeAt(0));
