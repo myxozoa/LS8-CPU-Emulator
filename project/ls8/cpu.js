@@ -41,6 +41,13 @@ const IM = 5;
 const IS = 6;
 const SP = 7;
 
+const FLAG_EQ = 0;
+const FLAG_GT = 1;
+const FLAG_LT = 2;
+
+const vecTableStart = 0xF8;
+const parameterCountMask = 0b11000000;
+
 const intMask = [
     (0x1 << 0), // timer
     (0x1 << 1), // keyboard
@@ -90,6 +97,15 @@ class CPU {
         }, 1000);
     }
 
+    setFlag(flag) {
+        this.reg[FL] = 0b1 << flag;
+    }
+
+    checkFlag(flag) {
+        // console.log('checkflagtest: ', (this.reg[FL] & (0b1 << flag)) !== 0);
+        return (this.reg[FL] & (0b1 << flag)) !== 0;
+    }
+
     /**
      * Stops the clock
      */
@@ -136,9 +152,9 @@ class CPU {
                 this.reg[regA] -= 1;
                 break;
             case 'CMP':
-                if (valA > valB) this.reg[FL] = 0b00000010;
-                if (valA < valB) this.reg[FL] = 0b00000100;
-                if (valA === valB) this.reg[FL] = 0b00000001;
+                if (valA > valB) this.setFlag(FLAG_GT);
+                if (valA < valB) this.setFlag(FLAG_LT);
+                if (valA === valB) this.setFlag(FLAG_EQ);
                 break;
             case 'MOD':
                 if (valB === 0) {
@@ -192,14 +208,14 @@ class CPU {
                     for(let r = 0; r <= 6; r++) {
                         _push(this.reg[r]);
                     }
-                    const vec = this.ram.read(0xF8 + i);
+                    const vec = this.ram.read(vecTableStart + i);
                     this.reg.PC = vec;
                     break;
                 }
             }
         }
         let IR = this.ram.read(this.reg.PC);
-        const nextInstruction = (IR & 11000000) >>> 6;
+        const nextInstruction = (IR & parameterCountMask) >>> 6;
 
         let operandA = this.ram.read(this.reg.PC + 1);
         let operandB = this.ram.read(this.reg.PC + 2);
@@ -263,19 +279,19 @@ class CPU {
             this.interruptsEnabled = true;
         };
         const handle_JEQ = () => {
-            if ((this.reg[FL] & 0b1) !== 0) {
+            if (this.checkFlag(FLAG_EQ)) {
                 this.reg.PC = this.reg[operandA];
                 this.calling = true;
             }
         };
         const handle_JGT = () => {
-            if ((this.reg[FL] & 0b10) !== 0) {
+            if (this.checkFlag(FLAG_GT)) {
                 this.reg.PC = this.reg[operandA];
                 this.calling = true;
             }
         };
         const handle_JLT = () => {
-            if ((this.reg[FL] & 0b100) !== 0) {
+            if (this.checkFlag(FLAG_LT)) {
                 this.reg.PC = this.reg[operandA];
                 this.calling = true;
             }
@@ -285,7 +301,7 @@ class CPU {
             this.calling = true;
         };
         const handle_JNE = () => {
-            if ((this.reg[FL] & 0b1) === 0) {
+            if (!this.checkFlag(FLAG_EQ)) {
                 this.reg.PC = this.reg[operandA];
                 this.calling = true;
             }
@@ -317,7 +333,7 @@ class CPU {
         const handle_PRA = () => {
             console.log(
                 String.fromCharCode(this.reg[operandA])
-            ); /* not completely sure */
+            ); /* not completely sure, it doesnt work with printstr.ls8 but if i change it to read off ram like that file seemingly expects then it breaks the rest of the files */
         };
         const handle_PRN = () => {
             console.log(this.reg[operandA]);
