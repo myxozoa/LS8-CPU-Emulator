@@ -36,9 +36,21 @@ const ST = 0b10011010;
 const SUB = 0b10101001;
 const XOR = 0b10110010;
 
+const FL = 4;
 const IM = 5;
 const IS = 6;
 const SP = 7;
+
+const intMask = [
+    (0x1 << 0), // timer
+    (0x1 << 1), // keyboard
+    (0x1 << 2), // reserved
+    (0x1 << 3), // reserved
+    (0x1 << 4), // reserved
+    (0x1 << 5), // reserved
+    (0x1 << 6), // reserved
+    (0x1 << 7), // reserved
+  ];
 
 class CPU {
     /**
@@ -48,7 +60,7 @@ class CPU {
         this.ram = ram;
 
         this.reg = new Array(8).fill(0); // General-purpose registers R0-R7
-        this.reg[SP] = 0xF4; // SP
+        this.reg[SP] = 0xf4; // SP
 
         // Special-purpose registers
         this.reg.PC = 0; // Program Counter
@@ -72,6 +84,10 @@ class CPU {
         this.clock = setInterval(() => {
             this.tick();
         }, 1); // 1 ms delay == 1 KHz clock == 0.000001 GHz
+
+        this.interruptTimer = setInterval(() => {
+            this.reg[IS] |= intMask[0];
+        }, 1000);
     }
 
     /**
@@ -79,6 +95,7 @@ class CPU {
      */
     stopClock() {
         clearInterval(this.clock);
+        clearInterval(this.interruptTimer);
     }
 
     /**
@@ -92,22 +109,24 @@ class CPU {
      * op can be: ADD SUB MUL DIV INC DEC CMP
      */
     alu(op, regA, regB) {
+        const valA = this.reg[regA];
+        const valB = this.reg[regB];
         switch (op) {
             case 'ADD':
-                this.reg[regA] = this.reg[regA] + this.reg[regB];
+                this.reg[regA] = valA + valB;
                 break;
             case 'SUB':
-                this.reg[regA] = this.reg[regA] - this.reg[regB];
+                this.reg[regA] = valA - valB;
                 break;
             case 'MUL':
-                this.reg[regA] = this.reg[regA] * this.reg[regB];
+                this.reg[regA] = valA * valB;
                 break;
             case 'DIV':
-                if (this.reg[regB] === 0) {
+                if (valB === 0) {
                     console.error('Divide by zero error');
                     this.stopClock();
                 } else {
-                    this.reg[regA] = this.reg[regA] / this.reg[regB];
+                    this.reg[regA] = valA / valB;
                 }
                 break;
             case 'INC':
@@ -117,29 +136,29 @@ class CPU {
                 this.reg[regA] -= 1;
                 break;
             case 'CMP':
-                if (this.reg[regA] > this.reg[regB]) this.reg[4] = 0b00000010;
-                if (this.reg[regA] < this.reg[regB]) this.reg[4] = 0b00000100;
-                if (this.reg[regA] === this.reg[regB]) this.reg[4] = 0b00000001;
+                if (valA > valB) this.reg[FL] = 0b00000010;
+                if (valA < valB) this.reg[FL] = 0b00000100;
+                if (valA === valB) this.reg[FL] = 0b00000001;
                 break;
             case 'MOD':
-                if (this.reg[regB] === 0) {
+                if (valB === 0) {
                     console.error('Divide by zero error');
                     this.stopClock();
                 } else {
-                    this.reg[regA] = this.reg[regA] % this.reg[regB];
+                    this.reg[regA] = valA % valB;
                 }
                 break;
             case 'AND':
-                this.reg[regA] = this.reg[regA] & this.reg[regB];
+                this.reg[regA] = valA & valB;
                 break;
             case 'NOT':
-                this.reg[regA] = ~this.reg[regA];
+                this.reg[regA] = ~valA;
                 break;
             case 'OR':
-                this.reg[regA] = this.reg[regA] | this.reg[regB];
+                this.reg[regA] = valA | valB;
                 break;
             case 'XOR':
-                this.reg[regA] = this.reg[regA] ^ this.reg[regB];
+                this.reg[regA] = valA ^ valB;
                 break;
         }
     }
@@ -148,9 +167,39 @@ class CPU {
      * Advances the CPU one cycle
      */
     tick() {
+
+        const _push = itm => {
+            this.alu('DEC', SP);
+            this.ram.write(this.reg[SP], itm);
+        };
+        const _pop = () => {
+            const res = this.ram.read(this.reg[SP]);
+            this.alu('INC', SP);
+            // console.log('POPPED: ', res);
+            return res;
+        };
+
+        if (this.interruptsEnabled) {
+            const maskedInts = this.reg[IS] & this.reg[IM];
+
+            for (let i = 0; i < 8; i++) {
+                if (((maskedInts >> i) & 0x01) === 1) {
+                    this.interruptsEnabled = false;
+
+                    this.reg[IS] &= ~intMask[i];
+                    _push(this.reg.PC);
+                    _push(this.reg[FL]);
+                    for(let r = 0; r <= 6; r++) {
+                        _push(this.reg[r]);
+                    }
+                    const vec = this.ram.read(0xF8 + i);
+                    this.reg.PC = vec;
+                    break;
+                }
+            }
+        }
         let IR = this.ram.read(this.reg.PC);
-        const nextInstruction = ((IR & 11000000) >>> 6);
-        this.calling = false;
+        const nextInstruction = (IR & 11000000) >>> 6;
 
         let operandA = this.ram.read(this.reg.PC + 1);
         let operandB = this.ram.read(this.reg.PC + 2);
@@ -165,45 +214,131 @@ class CPU {
         // console.log('RAM[3]: ', this.ram.mem[3]);
         // console.log('RAM[4]: ', this.ram.mem[4]);
         // console.log('RAM[5]: ', this.ram.mem[5]);
+        // console.log('RAM[F8]: ', this.ram.mem[0xF8]);
         // console.log('RAM[F4]: ', this.ram.mem[0xF4]);
         // console.log('RAM[F3]: ', this.ram.mem[0xF3]);
         // console.log('RAM[F2]: ', this.ram.mem[0xF2]);
+        // console.log('RAM[F1]: ', this.ram.mem[0xF1]);
+        // console.log('RAM[F0]: ', this.ram.mem[0xF0]);
         // console.log('REG: ', this.reg);
         // console.log('IR: ', IR.toString(2));
 
-        const _push = (itm) => { this.alu('DEC', SP); this.ram.write(this.reg[SP], itm);  }
-        const _pop = () => { const res = this.ram.read(this.reg[SP]); this.alu('INC', SP); return res; }
-
-        const handle_ADD = () => { this.alu('ADD', operandA, operandB); }
-        const handle_AND = () => { this.alu('AND', operandA, operandB); }
-        const handle_CALL = () => { _push(this.reg.PC + nextInstruction); this.reg.PC = this.reg[operandA]; this.calling = true; }
-        const handle_CMP = () => { this.alu('CMP', operandA, operandB); }
-        const handle_DEC = () => { this.alu('DEC', operandA, operandB); }
-        const handle_HLT = () => { this.stopClock(); }
-        const handle_DIV = () => { this.alu('DIV', operandA, operandB); }
-        const handle_INC = () => { this.alu('INC', operandA); }
-        const handle_INT = () => { /* IDK interrupts yet */ }
-        const handle_IRET = () => { /* IDK interrupts yet */ }
-        const handle_JEQ = () => { if (this.reg[4] & (0b1 !== 0)) this.reg.PC = this.reg[operandA]; }
-        const handle_JGT = () => { if (this.reg[4] & (0b10 !== 0)) this.reg.PC = this.reg[operandA]; }
-        const handle_JLT = () => { if (this.reg[4] & (0b100 !== 0)) this.reg.PC = this.reg[operandA]; }
-        const handle_JMP = () => { this.reg.PC = this.reg[operandA]; }
-        const handle_JNE = () => { if (this.reg[4] & (0b1 === 0)) this.reg.PC = this.reg[operandA]; }
-        const handle_LD = () => { this.reg[operandA] = this.reg[operandB]; }
-        const handle_LDI = () => { this.reg[operandA] = operandB; }
-        const handle_MOD = () => { this.alu('MOD', operandA, operandB); }
-        const handle_MUL = () => { this.alu('MUL', operandA, operandB); }
-        const handle_NOP = () => { return; }
-        const handle_NOT = () => { this.alu('NOT', operandA); }
-        const handle_OR = () => { this.alu('OR', operandA, operandB); }
-        const handle_POP = () => { this.reg[operandA] = _pop(); }
-        const handle_PRA = () => { console.log(String.fromCharCode(this.reg[operandA])); /* not completely sure */ }
-        const handle_PRN = () => { console.log(this.reg[operandA]); }
-        const handle_PUSH = () => { this.alu('DEC', SP); this.ram.write(this.reg[SP], this.reg[operandA]); }
-        const handle_RET = () => { this.reg.PC = _pop(); }
-        const handle_ST = () => { this.reg[operandB] = this.reg[operandA]; }
-        const handle_SUB = () => { this.alu('SUB', operandA, operandB); }
-        const handle_XOR = () => { this.alu('XOR', operandA, operandB); }
+        const handle_ADD = () => {
+            this.alu('ADD', operandA, operandB);
+        };
+        const handle_AND = () => {
+            this.alu('AND', operandA, operandB);
+        };
+        const handle_CALL = () => {
+            _push(this.reg.PC + nextInstruction);
+            this.reg.PC = this.reg[operandA];
+            this.calling = true;
+        };
+        const handle_CMP = () => {
+            this.alu('CMP', operandA, operandB);
+        };
+        const handle_DEC = () => {
+            this.alu('DEC', operandA, operandB);
+        };
+        const handle_HLT = () => {
+            this.stopClock();
+        };
+        const handle_DIV = () => {
+            this.alu('DIV', operandA, operandB);
+        };
+        const handle_INC = () => {
+            this.alu('INC', operandA);
+        };
+        const handle_INT = () => {
+            const intNum = this.reg[operandA];
+            this.reg[IM] |= intNum;
+        };
+        const handle_IRET = () => {
+            for(let r = 6; r >= 0; r--) {
+                this.reg[r] = _pop();
+            }
+            this.reg[FL] = _pop();
+            this.reg.PC = _pop();
+            this.calling = true;
+            this.interruptsEnabled = true;
+        };
+        const handle_JEQ = () => {
+            if ((this.reg[FL] & 0b1) !== 0) {
+                this.reg.PC = this.reg[operandA];
+                this.calling = true;
+            }
+        };
+        const handle_JGT = () => {
+            if ((this.reg[FL] & 0b10) !== 0) {
+                this.reg.PC = this.reg[operandA];
+                this.calling = true;
+            }
+        };
+        const handle_JLT = () => {
+            if ((this.reg[FL] & 0b100) !== 0) {
+                this.reg.PC = this.reg[operandA];
+                this.calling = true;
+            }
+        };
+        const handle_JMP = () => {
+            this.reg.PC = this.reg[operandA];
+            this.calling = true;
+        };
+        const handle_JNE = () => {
+            if ((this.reg[FL] & 0b1) === 0) {
+                this.reg.PC = this.reg[operandA];
+                this.calling = true;
+            }
+        };
+        const handle_LD = () => {
+            this.reg[operandA] = this.reg[operandB];
+        };
+        const handle_LDI = () => {
+            this.reg[operandA] = operandB;
+        };
+        const handle_MOD = () => {
+            this.alu('MOD', operandA, operandB);
+        };
+        const handle_MUL = () => {
+            this.alu('MUL', operandA, operandB);
+        };
+        const handle_NOP = () => {
+            return;
+        };
+        const handle_NOT = () => {
+            this.alu('NOT', operandA);
+        };
+        const handle_OR = () => {
+            this.alu('OR', operandA, operandB);
+        };
+        const handle_POP = () => {
+            this.reg[operandA] = _pop();
+        };
+        const handle_PRA = () => {
+            console.log(
+                String.fromCharCode(this.reg[operandA])
+            ); /* not completely sure */
+        };
+        const handle_PRN = () => {
+            console.log(this.reg[operandA]);
+        };
+        const handle_PUSH = () => {
+            this.alu('DEC', SP);
+            this.ram.write(this.reg[SP], this.reg[operandA]);
+        };
+        const handle_RET = () => {
+            this.reg.PC = _pop();
+            // this.calling = true; this is proper but breaks the code for some reason. prob should investigate
+        };
+        const handle_ST = () => {
+            this.ram.write(this.reg[operandA], this.reg[operandB]);
+        };
+        const handle_SUB = () => {
+            this.alu('SUB', operandA, operandB);
+        };
+        const handle_XOR = () => {
+            this.alu('XOR', operandA, operandB);
+        };
 
         const branchTable = [];
         branchTable[ADD] = handle_ADD;
@@ -217,7 +352,7 @@ class CPU {
         branchTable[INT] = handle_INT;
         branchTable[IRET] = handle_IRET;
         branchTable[JEQ] = handle_JEQ;
-        branchTable[JGT] =  handle_JGT;
+        branchTable[JGT] = handle_JGT;
         branchTable[JLT] = handle_JLT;
         branchTable[JMP] = handle_JMP;
         branchTable[JLT] = handle_JLT;
@@ -237,14 +372,14 @@ class CPU {
         branchTable[SUB] = handle_SUB;
         branchTable[XOR] = handle_XOR;
 
-
         let handler = branchTable[IR];
 
         handler();
-        // console.log('--------------------------')
-        if(!this.calling) {
+        // console.log('--------------------------');
+        if (!this.calling) {
             this.reg.PC += nextInstruction + 1;
         }
+        this.calling = false;
 
     }
 }
