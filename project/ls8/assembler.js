@@ -203,7 +203,7 @@ rl.on('close', () => {
         process.exit(2);
       }
     }
-
+    
     fs.writeSync(output, c + '\n');
   }
 });

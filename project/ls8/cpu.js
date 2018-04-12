@@ -72,8 +72,14 @@ class CPU {
         // Special-purpose registers
         this.reg.PC = 0; // Program Counter
 
+        this.peripherals = [];
+
         this.calling = false;
         this.interruptsEnabled = true;
+    }
+
+    addPeripheral(per) {
+        this.peripherals.push(per);
     }
 
     /**
@@ -82,6 +88,10 @@ class CPU {
     poke(address, value) {
         // console.log('address: ', address);
         this.ram.write(address, value);
+    }
+
+    raiseInterrupt(n) {
+        this.reg[IS] |= intMask[n];
     }
 
     /**
@@ -93,7 +103,7 @@ class CPU {
         }, 1); // 1 ms delay == 1 KHz clock == 0.000001 GHz
 
         this.interruptTimer = setInterval(() => {
-            this.reg[IS] |= intMask[0];
+            this.raiseInterrupt(0);
         }, 1000);
     }
 
@@ -112,6 +122,9 @@ class CPU {
     stopClock() {
         clearInterval(this.clock);
         clearInterval(this.interruptTimer);
+        for(let per of this.peripherals) {
+            per.stop();
+        }
     }
 
     /**
@@ -307,7 +320,7 @@ class CPU {
             }
         };
         const handle_LD = () => {
-            this.reg[operandA] = this.reg[operandB];
+            this.reg[operandA] = this.ram.read(this.reg[operandB]);
         };
         const handle_LDI = () => {
             this.reg[operandA] = operandB;
@@ -331,9 +344,10 @@ class CPU {
             this.reg[operandA] = _pop();
         };
         const handle_PRA = () => {
-            console.log(
-                String.fromCharCode(this.reg[operandA])
-            ); /* not completely sure, it doesnt work with printstr.ls8 but if i change it to read off ram like that file seemingly expects then it breaks the rest of the files */
+            process.stdout.write(String.fromCharCode(this.reg[operandA]));
+            // console.log(
+            //     String.fromCharCode(this.reg[operandA])
+            // );
         };
         const handle_PRN = () => {
             console.log(this.reg[operandA]);
