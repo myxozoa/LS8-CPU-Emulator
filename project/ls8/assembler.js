@@ -108,7 +108,7 @@ const regexDB = /(?:(\w+?):)?\s*DB\s*(.+)/i;
 
 /**
  * Pass 1
- * 
+ *
  * Read the source code lines
  * Parse labels, opcodes, and operands
  * Record label offsets
@@ -136,7 +136,7 @@ rl.on('line', (input) => {
 
   if (m) {
     let [, label, opcode, opA, opB] = m;
-    
+
     label = uppercase(label);
     opcode = uppercase(opcode);
     opA = uppercase(opA);
@@ -182,7 +182,7 @@ rl.on('line', (input) => {
 
 /**
  * Pass 2
- * 
+ *
  * Output the code, substituting in any symbols
  */
 rl.on('close', () => {
@@ -203,7 +203,7 @@ rl.on('close', () => {
         process.exit(2);
       }
     }
-    
+
     fs.writeSync(output, c + '\n');
   }
 });
@@ -347,7 +347,7 @@ function out8(opcode, opA, opB, machineCode) {
  */
 function handleDS(input) {
   const m = input.match(regexDS);
-  
+
   if (m === null || m[2] === '') {
     console.error(`line ${line}: missing argument to DS`);
     process.exit(2);
@@ -373,7 +373,7 @@ function handleDS(input) {
  */
 function handleDB(input) {
   const m = input.match(regexDB);
-  
+
   if (m === null || m[2] === '') {
     console.error(`line ${line}: missing argument to DB`);
     process.exit(2);

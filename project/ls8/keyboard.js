@@ -23,24 +23,28 @@ class Keyboard {
         process.stdin.resume();
 
         process.stdin.on('keypress', (ch, key) => {
-            if (key && key.ctrl && key.name == 'c') {
-                this.cpu.stopClock();
-            }
-            switch (key.name) {
-                case 'escape':
+            if(key) {
+                if (key.ctrl && key.name == 'c') {
                     this.cpu.stopClock();
-                    break;
-                case 'return':
-                    this.cpu.poke(keyPressedAddress, asciiReturn);
-                    break;
-                case 'space':
-                    this.cpu.poke(keyPressedAddress, asciiSpace);
-                    break;
-                case 'backspace':
-                    this.cpu.poke(keyPressedAddress, asciiBackspace);
-                    break;
-                default:
-                    this.cpu.poke(keyPressedAddress, key.name.charCodeAt(0));
+                }
+                switch (key.name) {
+                    case 'escape':
+                        this.cpu.stopClock();
+                        break;
+                    case 'return':
+                        this.cpu.poke(keyPressedAddress, asciiReturn);
+                        break;
+                    case 'space':
+                        this.cpu.poke(keyPressedAddress, asciiSpace);
+                        break;
+                    case 'backspace':
+                        this.cpu.poke(keyPressedAddress, asciiBackspace);
+                        break;
+                    default:
+                        this.cpu.poke(keyPressedAddress, key.name.charCodeAt(0));
+                }
+            } else if(ch) {
+                this.cpu.poke(keyPressedAddress, ch.charCodeAt(0));
             }
 
             this.cpu.raiseInterrupt(1);

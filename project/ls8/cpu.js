@@ -71,6 +71,10 @@ class CPU {
 
         // Special-purpose registers
         this.reg.PC = 0; // Program Counter
+        this.reg.FL = 0;
+        this.reg.IR = 0;
+        // this.reg.MAR = 0;
+        // this.reg.MDR = 0;
 
         this.peripherals = [];
 
@@ -108,12 +112,12 @@ class CPU {
     }
 
     setFlag(flag) {
-        this.reg[FL] = 0b1 << flag;
+        this.reg.FL = 0b1 << flag;
     }
 
     checkFlag(flag) {
         // console.log('checkflagtest: ', (this.reg[FL] & (0b1 << flag)) !== 0);
-        return (this.reg[FL] & (0b1 << flag)) !== 0;
+        return (this.reg.FL & (0b1 << flag)) !== 0;
     }
 
     /**
@@ -217,7 +221,7 @@ class CPU {
 
                     this.reg[IS] &= ~intMask[i];
                     _push(this.reg.PC);
-                    _push(this.reg[FL]);
+                    _push(this.reg.FL);
                     for(let r = 0; r <= 6; r++) {
                         _push(this.reg[r]);
                     }
@@ -227,8 +231,8 @@ class CPU {
                 }
             }
         }
-        let IR = this.ram.read(this.reg.PC);
-        const nextInstruction = (IR & parameterCountMask) >>> 6;
+        this.reg.IR = this.ram.read(this.reg.PC);
+        const nextInstruction = (this.reg.IR & parameterCountMask) >>> 6;
 
         let operandA = this.ram.read(this.reg.PC + 1);
         let operandB = this.ram.read(this.reg.PC + 2);
@@ -280,13 +284,14 @@ class CPU {
         };
         const handle_INT = () => {
             const intNum = this.reg[operandA];
-            this.reg[IM] |= intNum;
+            // this.reg[IM] |= intNum;
+            this.raiseInterrupt(intNum);
         };
         const handle_IRET = () => {
             for(let r = 6; r >= 0; r--) {
                 this.reg[r] = _pop();
             }
-            this.reg[FL] = _pop();
+            this.reg.FL = _pop();
             this.reg.PC = _pop();
             this.calling = true;
             this.interruptsEnabled = true;
@@ -402,7 +407,7 @@ class CPU {
         branchTable[SUB] = handle_SUB;
         branchTable[XOR] = handle_XOR;
 
-        let handler = branchTable[IR];
+        let handler = branchTable[this.reg.IR];
 
         handler();
         // console.log('--------------------------');
