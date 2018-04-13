@@ -1,6 +1,3 @@
-LDI R0, 0xF9
-ST R0, R1 ; store address of the frame interrupt into 0xF9 (the I0 Vector)
-LDI R5, 2 ; set keyboard interrupt
 ; LDI R1, 20 ; ground level
 ; LDI R2, 2 ; gravity
 LDI R3, 10 ; player x
