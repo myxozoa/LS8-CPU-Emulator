@@ -15,7 +15,9 @@ class Graphics {
   }
 
   stop() {
-    ctx.clear();
+    // ctx.clear();
+    ctx.cursor.on();
+    ctx.cursor.restore();
   }
   start() {
     ctx.clear();

@@ -245,6 +245,7 @@ class CPU {
         }
         this.reg.IR = this.ram.read(this.reg.PC);
         const nextInstruction = (this.reg.IR & parameterCountMask) >>> 6;
+        // console.log('nextInstruction');
 
         let operandA = this.ram.read(this.reg.PC + 1);
         let operandB = this.ram.read(this.reg.PC + 2);
@@ -266,7 +267,7 @@ class CPU {
         // console.log('RAM[F1]: ', this.ram.mem[0xF1]);
         // console.log('RAM[F0]: ', this.ram.mem[0xF0]);
         // console.log('REG: ', this.reg);
-        // console.log('IR: ', IR.toString(2));
+        // console.log('IR: ', this.reg.IR.toString(2));
 
         const handle_ADD = () => {
             this.alu('ADD', operandA, operandB);
@@ -432,6 +433,7 @@ class CPU {
         branchTable[JEQI] = handle_JEQI;
         branchTable[JGT] = handle_JGT;
         branchTable[JLT] = handle_JLT;
+        branchTable[JNE] = handle_JNE;
         branchTable[JMP] = handle_JMP;
         branchTable[JMPI] = handle_JMPI;
         branchTable[JLT] = handle_JLT;
