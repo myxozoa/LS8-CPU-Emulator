@@ -6,9 +6,12 @@
  * Class for simulating a simple Computer (CPU & memory)
  */
 const ADD = 0b10101000;
+const ADDI = 0b10101111;
 const AND = 0b10110011;
 const CALL = 0b01001000;
+const CALLI = 0b01001001;
 const CMP = 0b10100000;
+const CLR = 0b00000100;
 const DEC = 0b01111001;
 const DIV = 0b10101011;
 const DRW = 0b10000110;
@@ -17,9 +20,11 @@ const INC = 0b01111000;
 const INT = 0b01001010;
 const IRET = 0b00001011;
 const JEQ = 0b01010001;
+const JEQI = 0b01011111;
 const JGT = 0b01010100;
 const JLT = 0b01010011;
 const JMP = 0b01010000;
+const JMPI = 0b01010111;
 const JNE = 0b01010010;
 const LD = 0b10011000;
 const LDI = 0b10011001;
@@ -37,7 +42,6 @@ const ST = 0b10011010;
 const SUB = 0b10101001;
 const XOR = 0b10110010;
 
-const CLR = 0b00000100;
 
 const FL = 4;
 const IM = 5;
@@ -154,6 +158,8 @@ class CPU {
             case 'ADD':
                 this.reg[regA] = valA + valB;
                 break;
+            case 'ADDI':
+                this.reg[regA] = valA + regB;
             case 'SUB':
                 this.reg[regA] = valA - valB;
                 break;
@@ -265,6 +271,9 @@ class CPU {
         const handle_ADD = () => {
             this.alu('ADD', operandA, operandB);
         };
+        const handle_ADDI = () => {
+            this.alu('ADDI', operandA, operandB);
+        };
         const handle_AND = () => {
             this.alu('AND', operandA, operandB);
         };
@@ -273,8 +282,14 @@ class CPU {
             this.reg.PC = this.reg[operandA];
             this.calling = true;
         };
+        const handle_CALLI = () => {
+            _push(this.reg.PC + nextInstruction);
+            this.reg.PC = operandA;
+            this.calling = true;
+        };
         const handle_CLR = () => {
-            this.graphics.clear();
+            this.graphics.clearLastPt();
+            // this.graphics.clear();
         };
         const handle_CMP = () => {
             this.alu('CMP', operandA, operandB);
@@ -282,11 +297,14 @@ class CPU {
         const handle_DEC = () => {
             this.alu('DEC', operandA, operandB);
         };
-        const handle_HLT = () => {
-            this.stopClock();
-        };
         const handle_DIV = () => {
             this.alu('DIV', operandA, operandB);
+        };
+        const handle_DRW = () => {
+            this.graphics.draw(this.reg[operandA], this.reg[operandB]);
+        };
+        const handle_HLT = () => {
+            this.stopClock();
         };
         const handle_INC = () => {
             this.alu('INC', operandA);
@@ -311,6 +329,12 @@ class CPU {
                 this.calling = true;
             }
         };
+        const handle_JEQI = () => {
+            if (this.checkFlag(FLAG_EQ)) {
+                this.reg.PC = operandA;
+                this.calling = true;
+            }
+        };
         const handle_JGT = () => {
             if (this.checkFlag(FLAG_GT)) {
                 this.reg.PC = this.reg[operandA];
@@ -325,6 +349,10 @@ class CPU {
         };
         const handle_JMP = () => {
             this.reg.PC = this.reg[operandA];
+            this.calling = true;
+        };
+        const handle_JMPI = () => {
+            this.reg.PC = operandA;
             this.calling = true;
         };
         const handle_JNE = () => {
@@ -387,20 +415,25 @@ class CPU {
 
         const branchTable = [];
         branchTable[ADD] = handle_ADD;
+        branchTable[ADDI] = handle_ADDI;
         branchTable[AND] = handle_AND;
         branchTable[CALL] = handle_CALL;
+        branchTable[CALLI] = handle_CALLI;
         branchTable[CLR] = handle_CLR;
         branchTable[CMP] = handle_CMP;
         branchTable[DEC] = handle_DEC;
-        branchTable[HLT] = handle_HLT;
         branchTable[DIV] = handle_DIV;
+        branchTable[DRW] = handle_DRW;
+        branchTable[HLT] = handle_HLT;
         branchTable[INC] = handle_INC;
         branchTable[INT] = handle_INT;
         branchTable[IRET] = handle_IRET;
         branchTable[JEQ] = handle_JEQ;
+        branchTable[JEQI] = handle_JEQI;
         branchTable[JGT] = handle_JGT;
         branchTable[JLT] = handle_JLT;
         branchTable[JMP] = handle_JMP;
+        branchTable[JMPI] = handle_JMPI;
         branchTable[JLT] = handle_JLT;
         branchTable[LD] = handle_LD;
         branchTable[LDI] = handle_LDI;

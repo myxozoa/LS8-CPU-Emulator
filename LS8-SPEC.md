@@ -152,6 +152,17 @@ Machine code:
 10101000 00000aaa 00000bbb
 ```
 
+### ADDI
+
+`ADD registerA iiiiiiii`
+
+Add a value to a given register.
+
+Machine code:
+```
+10101111 00000aaa iiiiiiii
+```
+
 ### AND
 
 `AND registerA registerB`
@@ -164,7 +175,7 @@ Machine code:
 10110011 00000aaa 00000bbb
 ```
 
-### CALL register
+### CALL
 
 `CALL register`
 
@@ -177,6 +188,21 @@ Calls a subroutine (function) at the address stored in the register.
 Machine code:
 ```
 01001000 00000rrr
+```
+
+### CALLI
+
+`CALL iiiiiiii`
+
+Calls a subroutine (function) at the address given.
+
+1. The address of the _next_ instruction that will execute is pushed onto the
+   stack.
+2. The PC is set to the address stored in the given register.
+
+Machine code:
+```
+01001001 00000rrr
 ```
 
 ### CLR
@@ -311,6 +337,17 @@ Machine code:
 01010001 00000rrr
 ```
 
+### JEQI
+
+`JEQI iiiiiiii`
+
+If `equal` flag is set (true), jump to the address given.
+
+Machine code:
+```
+01011111 00000rrr
+```
+
 ### JGT
 
 `JGT register`
@@ -348,6 +385,18 @@ Machine code:
 01010000 00000rrr
 ```
 
+### JMPI
+
+`JMP iiiiiiii`
+
+Jump to the address given.
+
+Set the `PC` to the address stored in the given register.
+
+Machine code:
+```
+01010111 00000rrr
+```
 ### JNE
 
 `JNE register`

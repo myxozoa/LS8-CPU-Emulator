@@ -8,7 +8,8 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/project\\ls8\\ls8.js"
+            "program": "${workspaceFolder}/project\\ls8\\ls8.js",
+            "protocol": "inspector"
         }
     ]
 }

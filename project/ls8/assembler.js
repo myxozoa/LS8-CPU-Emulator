@@ -51,17 +51,23 @@ const sym = {};
 // Operands:
 const ops = {
   "ADD":  { type: 2, code: '10101000' },
+  "ADDI": { type: 2, code: '10101111' },
   "AND":  { type: 2, code: '10110011' },
   "CALL": { type: 1, code: '01001000' },
+  "CALLI":{ type: 7, code: '01001001' },
   "CMP":  { type: 2, code: '10100000' },
+  "CLR":  { type: 0, code: '00000100' },
   "DEC":  { type: 1, code: '01111001' },
   "DIV":  { type: 2, code: '10101011' },
+  "DRW":  { type: 2, code: '10000110' },
   "HLT":  { type: 0, code: '00000001' },
   "INC":  { type: 1, code: '01111000' },
   "INT":  { type: 1, code: '01001010' },
   "IRET": { type: 0, code: '00001011' },
   "JEQ":  { type: 1, code: '01010001' },
+  "JEQI": { type: 7, code: '01011111' },
   "JMP":  { type: 1, code: '01010000' },
+  "JMPI": { type: 7, code: '01010111' },
   "JNE":  { type: 1, code: '01010010' },
   "JLT":  { type: 1, code: '01010011' },
   "JGT":  { type: 1, code: '01010100' },
@@ -86,6 +92,7 @@ const typeF = {
   0: out0,
   1: out1,
   2: out2,
+  7: out7,
   8: out8,
 };
 
@@ -340,6 +347,25 @@ function out8(opcode, opA, opB, machineCode) {
   code.push(outB);
 
   addr += 3;
+}
+/**
+ * Handle single operand immediate opcodes
+ */
+function out7(opcode, opA, opB, machineCode) {
+  let valA = parseInt(opA);
+  let outA;
+
+  if (isNaN(valA)) {
+    // If it's not a value, it might be a symbol
+    outA = `sym:${opA}`;
+  } else {
+    outA = p8(valA);
+  }
+
+  code.push(`${machineCode} # ${opcode} ${opA}`);
+  code.push(outA);
+
+  addr += 2;
 }
 
 /**
