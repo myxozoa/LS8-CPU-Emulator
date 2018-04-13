@@ -11,6 +11,7 @@ const CALL = 0b01001000;
 const CMP = 0b10100000;
 const DEC = 0b01111001;
 const DIV = 0b10101011;
+const DRW = 0b10000110;
 const HLT = 0b00000001;
 const INC = 0b01111000;
 const INT = 0b01001010;
@@ -35,6 +36,8 @@ const RET = 0b00001001;
 const ST = 0b10011010;
 const SUB = 0b10101001;
 const XOR = 0b10110010;
+
+const CLR = 0b00000100;
 
 const FL = 4;
 const IM = 5;
@@ -63,7 +66,7 @@ class CPU {
     /**
      * Initialize the CPU
      */
-    constructor(ram) {
+    constructor(ram, graphics) {
         this.ram = ram;
 
         this.reg = new Array(8).fill(0); // General-purpose registers R0-R7
@@ -77,6 +80,9 @@ class CPU {
         // this.reg.MDR = 0;
 
         this.peripherals = [];
+
+        this.graphics = graphics;
+        this.addPeripheral(graphics);
 
         this.calling = false;
         this.interruptsEnabled = true;
@@ -108,7 +114,7 @@ class CPU {
 
         this.interruptTimer = setInterval(() => {
             this.raiseInterrupt(0);
-        }, 1000);
+        }, 30);
     }
 
     setFlag(flag) {
@@ -267,6 +273,9 @@ class CPU {
             this.reg.PC = this.reg[operandA];
             this.calling = true;
         };
+        const handle_CLR = () => {
+            this.graphics.clear();
+        };
         const handle_CMP = () => {
             this.alu('CMP', operandA, operandB);
         };
@@ -349,7 +358,8 @@ class CPU {
             this.reg[operandA] = _pop();
         };
         const handle_PRA = () => {
-            process.stdout.write(String.fromCharCode(this.reg[operandA]));
+            this.graphics.text(this.reg[operandA]);
+            // process.stdout.write(String.fromCharCode(this.reg[operandA]));
             // console.log(
             //     String.fromCharCode(this.reg[operandA])
             // );
@@ -379,6 +389,7 @@ class CPU {
         branchTable[ADD] = handle_ADD;
         branchTable[AND] = handle_AND;
         branchTable[CALL] = handle_CALL;
+        branchTable[CLR] = handle_CLR;
         branchTable[CMP] = handle_CMP;
         branchTable[DEC] = handle_DEC;
         branchTable[HLT] = handle_HLT;

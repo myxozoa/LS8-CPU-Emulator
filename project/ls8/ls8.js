@@ -1,6 +1,7 @@
 const RAM = require('./ram');
 const CPU = require('./cpu');
 const Keyboard = require('./keyboard');
+const Graphics = require('./graphics');
 const fs = require('fs');
 
 
@@ -58,7 +59,8 @@ function loadMemory() {
  */
 
 let ram = new RAM(256);
-let cpu = new CPU(ram);
+let graphics = new Graphics();
+let cpu = new CPU(ram, graphics);
 let keyboard = new Keyboard(cpu);
 
 

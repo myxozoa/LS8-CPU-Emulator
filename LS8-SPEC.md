@@ -179,6 +179,17 @@ Machine code:
 01001000 00000rrr
 ```
 
+### CLR
+
+`CLR` pseudo-instruction
+
+Clears the terminal window.
+
+Machine code:
+```
+00000100
+```
+
 ### CMP
 
 `CMP registerA registerB`
@@ -222,6 +233,17 @@ error message and halt.
 Machine code:
 ```
 10101011 00000aaa 00000bbb
+```
+
+### DRW
+
+`DRW registerA registerB`
+
+Draw a point (box) to the terminal window at the specified (X, Y) location.
+
+Machine Code:
+```
+10000110 00000aaa 00000bbb
 ```
 
 ### HLT
