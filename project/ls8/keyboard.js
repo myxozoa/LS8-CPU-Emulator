@@ -14,11 +14,16 @@ class Keyboard {
     }
 
     stop() {
+        // clearInterval(this.clearKey);
         process.stdin.setRawMode(false);
         process.stdin.end();
         process.exit();
     }
     start() {
+        // this.clearKey = setInterval(() => {
+        //     this.cpu.poke(keyPressedAddress, asciiSpace);
+        // }, this.cpu.clockspeed + 10);
+
         process.stdin.setRawMode(true);
         process.stdin.resume();
 

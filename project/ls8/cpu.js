@@ -11,10 +11,12 @@ const AND = 0b10110011;
 const CALL = 0b01001000;
 const CALLI = 0b01001001;
 const CMP = 0b10100000;
+const CMPI = 0b10100001;
 const CLR = 0b00000100;
 const DEC = 0b01111001;
 const DIV = 0b10101011;
 const DRW = 0b10000110;
+const DRWB = 0b10001110;
 const HLT = 0b00000001;
 const INC = 0b01111000;
 const INT = 0b01001010;
@@ -22,6 +24,7 @@ const IRET = 0b00001011;
 const JEQ = 0b01010001;
 const JEQI = 0b01011111;
 const JGT = 0b01010100;
+const JGTI = 0b01010110;
 const JLT = 0b01010011;
 const JMP = 0b01010000;
 const JMPI = 0b01010111;
@@ -40,6 +43,7 @@ const PUSH = 0b01001101;
 const RET = 0b00001001;
 const ST = 0b10011010;
 const SUB = 0b10101001;
+const SUBI = 0b10111001;
 const XOR = 0b10110010;
 
 
@@ -90,6 +94,8 @@ class CPU {
 
         this.calling = false;
         this.interruptsEnabled = true;
+
+        this.clockspeed = 1;
     }
 
     addPeripheral(per) {
@@ -114,7 +120,7 @@ class CPU {
     startClock() {
         this.clock = setInterval(() => {
             this.tick();
-        }, 1); // 1 ms delay == 1 KHz clock == 0.000001 GHz
+        }, this.clockspeed); // 1 ms delay == 1 KHz clock == 0.000001 GHz
 
         this.interruptTimer = setInterval(() => {
             this.raiseInterrupt(0);
@@ -160,8 +166,12 @@ class CPU {
                 break;
             case 'ADDI':
                 this.reg[regA] = valA + regB;
+                break;
             case 'SUB':
                 this.reg[regA] = valA - valB;
+                break;
+            case 'SUBI':
+                this.reg[regA] = valA - regB;
                 break;
             case 'MUL':
                 this.reg[regA] = valA * valB;
@@ -184,6 +194,11 @@ class CPU {
                 if (valA > valB) this.setFlag(FLAG_GT);
                 if (valA < valB) this.setFlag(FLAG_LT);
                 if (valA === valB) this.setFlag(FLAG_EQ);
+                break;
+            case 'CMPI':
+                if (valA > regB) this.setFlag(FLAG_GT);
+                if (valA < regB) this.setFlag(FLAG_LT);
+                if (valA === regB) this.setFlag(FLAG_EQ);
                 break;
             case 'MOD':
                 if (valB === 0) {
@@ -295,6 +310,9 @@ class CPU {
         const handle_CMP = () => {
             this.alu('CMP', operandA, operandB);
         };
+        const handle_CMPI = () => {
+            this.alu('CMPI', operandA, operandB);
+        };
         const handle_DEC = () => {
             this.alu('DEC', operandA, operandB);
         };
@@ -302,8 +320,11 @@ class CPU {
             this.alu('DIV', operandA, operandB);
         };
         const handle_DRW = () => {
-            this.graphics.draw(this.reg[operandA], this.reg[operandB]);
+            this.graphics.drawSprt(this.reg[operandA], this.reg[operandB]);
         };
+        const handle_DRWB = () => {
+            this.graphics.drawBlc(this.reg[operandA], this.reg[operandB]);
+        }
         const handle_HLT = () => {
             this.stopClock();
         };
@@ -339,6 +360,12 @@ class CPU {
         const handle_JGT = () => {
             if (this.checkFlag(FLAG_GT)) {
                 this.reg.PC = this.reg[operandA];
+                this.calling = true;
+            }
+        };
+        const handle_JGTI = () => {
+            if (this.checkFlag(FLAG_GT)) {
+                this.reg.PC = operandA;
                 this.calling = true;
             }
         };
@@ -410,6 +437,9 @@ class CPU {
         const handle_SUB = () => {
             this.alu('SUB', operandA, operandB);
         };
+        const handle_SUBI = () => {
+            this.alu('SUBI', operandA, operandB);
+        };
         const handle_XOR = () => {
             this.alu('XOR', operandA, operandB);
         };
@@ -422,9 +452,11 @@ class CPU {
         branchTable[CALLI] = handle_CALLI;
         branchTable[CLR] = handle_CLR;
         branchTable[CMP] = handle_CMP;
+        branchTable[CMPI] = handle_CMPI;
         branchTable[DEC] = handle_DEC;
         branchTable[DIV] = handle_DIV;
         branchTable[DRW] = handle_DRW;
+        branchTable[DRWB] = handle_DRWB;
         branchTable[HLT] = handle_HLT;
         branchTable[INC] = handle_INC;
         branchTable[INT] = handle_INT;
@@ -432,6 +464,7 @@ class CPU {
         branchTable[JEQ] = handle_JEQ;
         branchTable[JEQI] = handle_JEQI;
         branchTable[JGT] = handle_JGT;
+        branchTable[JGTI] = handle_JGTI;
         branchTable[JLT] = handle_JLT;
         branchTable[JNE] = handle_JNE;
         branchTable[JMP] = handle_JMP;
@@ -451,6 +484,7 @@ class CPU {
         branchTable[RET] = handle_RET;
         branchTable[ST] = handle_ST;
         branchTable[SUB] = handle_SUB;
+        branchTable[SUBI] = handle_SUBI;
         branchTable[XOR] = handle_XOR;
 
         let handler = branchTable[this.reg.IR];

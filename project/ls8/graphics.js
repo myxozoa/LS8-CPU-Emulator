@@ -22,6 +22,9 @@ class Graphics {
   start() {
     ctx.clear();
     ctx.cursor.off();
+
+    this.rawText(15,10, ctx.cols);
+    this.rawText(20,10, ctx.rows);
   }
   text(char) {
     this.xCount++;
@@ -33,18 +36,38 @@ class Graphics {
       ctx.text(this.xCount, this.yCount, String.fromCharCode(char));
     }
   }
+  rawText(x, y, char) {
+    this.xCount++;
+    // console.log('char', char);
+    if(char === 10) {
+      this.xCount = 0;
+      this.yCount++;
+    } else {
+      ctx.text(x, y, char.toString());
+    }
+  }
   clear() {
     ctx.clear();
   }
-  draw(x, y) {
+  drawSprt(x, y) {
     ctx.brush = ' ';
     ctx.cursor.reset();
     ctx.point(this.fixedX, this.fixedY);
     this.fixedX = x % ctx.cols;
     this.fixedY = y % ctx.rows;
-    ctx.brush = '█';
+    ctx.brush = '╔';
     ctx.point(this.fixedX, this.fixedY);
   }
+  drawBlc(x, y) {
+    // ctx.brush = ' ';
+    // ctx.cursor.reset();
+    // ctx.point(this.fixedX, this.fixedY);
+    this.fixedX = x % ctx.cols;
+    this.fixedY = y % ctx.rows;
+    ctx.brush = '▀';
+    ctx.point(this.fixedX, this.fixedY);
+  }
+
 }
 
 module.exports = Graphics;

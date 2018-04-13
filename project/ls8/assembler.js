@@ -51,15 +51,17 @@ const sym = {};
 // Operands:
 const ops = {
   "ADD":  { type: 2, code: '10101000' },
-  "ADDI": { type: 2, code: '10101111' },
+  "ADDI": { type: 8, code: '10101111' },
   "AND":  { type: 2, code: '10110011' },
   "CALL": { type: 1, code: '01001000' },
   "CALLI":{ type: 7, code: '01001001' },
   "CMP":  { type: 2, code: '10100000' },
+  "CMPI": { type: 8, code: '10100001' },
   "CLR":  { type: 0, code: '00000100' },
   "DEC":  { type: 1, code: '01111001' },
   "DIV":  { type: 2, code: '10101011' },
   "DRW":  { type: 2, code: '10000110' },
+  "DRWB": { type: 2, code: '10001110' },
   "HLT":  { type: 0, code: '00000001' },
   "INC":  { type: 1, code: '01111000' },
   "INT":  { type: 1, code: '01001010' },
@@ -71,6 +73,7 @@ const ops = {
   "JNE":  { type: 1, code: '01010010' },
   "JLT":  { type: 1, code: '01010011' },
   "JGT":  { type: 1, code: '01010100' },
+  "JGTI": { type: 7, code: '01010110' },
   "LD":   { type: 2, code: '10011000' },
   "LDI":  { type: 8, code: '10011001' },
   "MUL":  { type: 2, code: '10101010' },
@@ -84,6 +87,7 @@ const ops = {
   "RET":  { type: 0, code: '00001001' },
   "ST":   { type: 2, code: '10011010' },
   "SUB":  { type: 2, code: '10101001' },
+  "SUBI": { type: 8, code: '10111001' },
   "XOR":  { type: 2, code: '10110010' },
 };
 
