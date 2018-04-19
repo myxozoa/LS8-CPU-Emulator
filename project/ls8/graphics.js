@@ -4,8 +4,8 @@ class Graphics {
   constructor(cpu) {
     this.cpu = cpu;
     this.start();
-    ctx.fg(255, 255, 255);
-    ctx.bg(0, 0, 0);
+    // ctx.fg(255, 255, 255);
+    // ctx.bg(0, 0, 0);
 
     this.xCount = 0;
     this.yCount = 1;
@@ -15,7 +15,7 @@ class Graphics {
   }
 
   stop() {
-    // ctx.clear();
+    ctx.clear();
     ctx.cursor.on();
     ctx.cursor.restore();
   }
@@ -23,8 +23,8 @@ class Graphics {
     ctx.clear();
     ctx.cursor.off();
 
-    this.rawText(15,10, ctx.cols);
-    this.rawText(20,10, ctx.rows);
+    // this.rawText(15,10, ctx.cols);
+    // this.rawText(20,10, ctx.rows);
   }
   text(char) {
     this.xCount++;
@@ -62,10 +62,10 @@ class Graphics {
     // ctx.brush = ' ';
     // ctx.cursor.reset();
     // ctx.point(this.fixedX, this.fixedY);
-    this.fixedX = x % ctx.cols;
-    this.fixedY = y % ctx.rows;
+    // this.fixedX = x % ctx.cols;
+    // this.fixedY = y % ctx.rows;
     ctx.brush = '▀';
-    ctx.point(this.fixedX, this.fixedY);
+    ctx.point(x, y);
   }
 
 }

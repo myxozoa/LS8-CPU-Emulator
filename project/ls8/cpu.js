@@ -5,6 +5,8 @@
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
+const NanoTimer = require('nanotimer');
+
 const ADD = 0b10101000;
 const ADDI = 0b10101111;
 const AND = 0b10110011;
@@ -58,6 +60,7 @@ const FLAG_LT = 2;
 
 const vecTableStart = 0xF8;
 const parameterCountMask = 0b11000000;
+
 
 const intMask = [
     (0x1 << 0), // timer
@@ -118,13 +121,19 @@ class CPU {
      * Starts the clock ticking on the CPU
      */
     startClock() {
-        this.clock = setInterval(() => {
-            this.tick();
-        }, this.clockspeed); // 1 ms delay == 1 KHz clock == 0.000001 GHz
+        // this.clock = setInterval(() => {
+        //     this.tick();
+        // }, this.clockspeed); // 1 ms delay == 1 KHz clock == 0.000001 GHz
+        this.clock = new NanoTimer();
+        this.interruptsTimer = new NanoTimer();
 
-        this.interruptTimer = setInterval(() => {
+        this.clock.setInterval(() => {
+            this.tick();
+        }, '', '1m');
+
+        this.interruptsTimer.setInterval(() => {
             this.raiseInterrupt(0);
-        }, 30);
+        }, '', '166m');
     }
 
     setFlag(flag) {
@@ -140,8 +149,10 @@ class CPU {
      * Stops the clock
      */
     stopClock() {
-        clearInterval(this.clock);
-        clearInterval(this.interruptTimer);
+        // clearInterval(this.clock);
+        // clearInterval(this.interruptTimer);
+        this.interruptsTimer.clearInterval();
+        this.clock.clearInterval();
         for(let per of this.peripherals) {
             per.stop();
         }

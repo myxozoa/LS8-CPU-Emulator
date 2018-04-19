@@ -3,57 +3,53 @@ const asciiReturn = 10;
 const asciiSpace = 32;
 const asciiBackspace = 8;
 const keypress = require('keypress');
-keypress(process.stdin);
+const iohook = require('iohook');
+// keypress(process.stdin);
 class Keyboard {
     constructor(cpu) {
         this.cpu = cpu;
-        this.keyhandler = null;
         cpu.addPeripheral(this);
+
+        this.twoKey = false;
+        this.heldKey = null;
 
         this.start();
     }
 
     stop() {
-        // clearInterval(this.clearKey);
         process.stdin.setRawMode(false);
         process.stdin.end();
         process.exit();
     }
     start() {
-        // this.clearKey = setInterval(() => {
-        //     this.cpu.poke(keyPressedAddress, asciiSpace);
-        // }, this.cpu.clockspeed + 10);
-
         process.stdin.setRawMode(true);
         process.stdin.resume();
 
-        process.stdin.on('keypress', (ch, key) => {
-            if(key) {
-                if (key.ctrl && key.name == 'c') {
-                    this.cpu.stopClock();
+        iohook.on('keydown', event => {
+            if(event.rawcode === 27) {
+                this.cpu.stopClock();
+            } else {
+                if(this.heldKey !== null && this.heldKey !== event.rawcode) {
+                    this.cpu.poke(keyPressedAddress, event.rawcode);
+                    this.twoKey = true;
+                } else {
+                    this.cpu.poke(keyPressedAddress, event.rawcode);
+                    this.heldKey = event.rawcode;
                 }
-                switch (key.name) {
-                    case 'escape':
-                        this.cpu.stopClock();
-                        break;
-                    case 'return':
-                        this.cpu.poke(keyPressedAddress, asciiReturn);
-                        break;
-                    case 'space':
-                        this.cpu.poke(keyPressedAddress, asciiSpace);
-                        break;
-                    case 'backspace':
-                        this.cpu.poke(keyPressedAddress, asciiBackspace);
-                        break;
-                    default:
-                        this.cpu.poke(keyPressedAddress, key.name.charCodeAt(0));
-                }
-            } else if(ch) {
-                this.cpu.poke(keyPressedAddress, ch.charCodeAt(0));
             }
-
-            this.cpu.raiseInterrupt(1);
         });
+        iohook.on('keyup', event => {
+            if(this.twoKey) {
+                this.cpu.poke(keyPressedAddress, this.heldKey);
+                this.twoKey = false;
+            } else if(this.heldKey === event.rawcode) {
+                this.cpu.poke(keyPressedAddress, 0);
+                this.heldKey = null;
+            } else {
+                this.cpu.poke(keyPressedAddress, 0);
+            }
+        });
+        iohook.start();
     }
 }
 
