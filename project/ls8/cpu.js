@@ -15,6 +15,7 @@ const CALLI = 0b01001001;
 const CMP = 0b10100000;
 const CMPI = 0b10100001;
 const CLR = 0b00000100;
+const CPY = 0b10000100;
 const DEC = 0b01111001;
 const DIV = 0b10101011;
 const DRW = 0b10000110;
@@ -26,6 +27,7 @@ const IRET = 0b00001011;
 const JEQ = 0b01010001;
 const JEQI = 0b01011111;
 const JGT = 0b01010100;
+const JGEI = 0b01110100;
 const JGTI = 0b01010110;
 const JLT = 0b01010011;
 const JMP = 0b01010000;
@@ -43,6 +45,7 @@ const PRA = 0b01000010;
 const PRN = 0b01000011;
 const PUSH = 0b01001101;
 const RET = 0b00001001;
+const SET = 0b00101001;
 const ST = 0b10011010;
 const SUB = 0b10101001;
 const SUBI = 0b10111001;
@@ -79,6 +82,7 @@ class CPU {
      */
     constructor(ram, graphics) {
         this.ram = ram;
+        this.graphics = graphics;
 
         this.reg = new Array(8).fill(0); // General-purpose registers R0-R7
         this.reg[SP] = 0xf4; // SP
@@ -90,15 +94,14 @@ class CPU {
         // this.reg.MAR = 0;
         // this.reg.MDR = 0;
 
+        this.frameStart = false;
+
         this.peripherals = [];
 
-        this.graphics = graphics;
         this.addPeripheral(graphics);
 
         this.calling = false;
         this.interruptsEnabled = true;
-
-        this.clockspeed = 1;
     }
 
     addPeripheral(per) {
@@ -126,14 +129,22 @@ class CPU {
         // }, this.clockspeed); // 1 ms delay == 1 KHz clock == 0.000001 GHz
         this.clock = new NanoTimer();
         this.interruptsTimer = new NanoTimer();
-
+        let clockTimer = 0;
+        let frameTimer = 0;
         this.clock.setInterval(() => {
+            // this.graphics.rawText(10, 0, clockTimer.toString());
+            clockTimer++;
             this.tick();
         }, '', '1m');
 
-        this.interruptsTimer.setInterval(() => {
-            this.raiseInterrupt(0);
-        }, '', '166m');
+        // this.interruptsTimer.setInterval(() => {
+        //     // this.graphics.rawText(0, 0, frameTimer.toString());
+        //     frameTimer++;
+        //     if(this.frameStart) {
+        //         // this.graphics.clear();
+        //         this.raiseInterrupt(0);
+        //     }
+        // }, '', '16m');
     }
 
     setFlag(flag) {
@@ -324,6 +335,9 @@ class CPU {
         const handle_CMPI = () => {
             this.alu('CMPI', operandA, operandB);
         };
+        const handle_CPY = () => {
+            this.reg[operandA] = this.reg[operandB];
+        };
         const handle_DEC = () => {
             this.alu('DEC', operandA, operandB);
         };
@@ -380,6 +394,12 @@ class CPU {
                 this.calling = true;
             }
         };
+        const handle_JGEI = () => {
+            if (this.checkFlag(FLAG_EQ) || this.checkFlag(FLAG_GT)) {
+                this.reg.PC = operandA;
+                this.calling = true;
+            }
+        }
         const handle_JLT = () => {
             if (this.checkFlag(FLAG_LT)) {
                 this.reg.PC = this.reg[operandA];
@@ -442,6 +462,9 @@ class CPU {
             this.reg.PC = _pop();
             // this.calling = true; this is proper but breaks the code for some reason. prob should investigate
         };
+        const handle_SET = () => {
+            this.frameStart = true;
+        };
         const handle_ST = () => {
             this.ram.write(this.reg[operandA], this.reg[operandB]);
         };
@@ -464,6 +487,7 @@ class CPU {
         branchTable[CLR] = handle_CLR;
         branchTable[CMP] = handle_CMP;
         branchTable[CMPI] = handle_CMPI;
+        branchTable[CPY] = handle_CPY;
         branchTable[DEC] = handle_DEC;
         branchTable[DIV] = handle_DIV;
         branchTable[DRW] = handle_DRW;
@@ -476,6 +500,7 @@ class CPU {
         branchTable[JEQI] = handle_JEQI;
         branchTable[JGT] = handle_JGT;
         branchTable[JGTI] = handle_JGTI;
+        branchTable[JGEI] = handle_JGEI;
         branchTable[JLT] = handle_JLT;
         branchTable[JNE] = handle_JNE;
         branchTable[JMP] = handle_JMP;
@@ -494,6 +519,7 @@ class CPU {
         branchTable[PUSH] = handle_PUSH;
         branchTable[RET] = handle_RET;
         branchTable[ST] = handle_ST;
+        branchTable[SET] = handle_SET;
         branchTable[SUB] = handle_SUB;
         branchTable[SUBI] = handle_SUBI;
         branchTable[XOR] = handle_XOR;

@@ -2,9 +2,7 @@ const keyPressedAddress = 0xf4;
 const asciiReturn = 10;
 const asciiSpace = 32;
 const asciiBackspace = 8;
-const keypress = require('keypress');
 const iohook = require('iohook');
-// keypress(process.stdin);
 class Keyboard {
     constructor(cpu) {
         this.cpu = cpu;
@@ -26,7 +24,7 @@ class Keyboard {
         process.stdin.resume();
 
         iohook.on('keydown', event => {
-            if(event.rawcode === 27) {
+            if(event.rawcode === 27 || event.rawcode === 67) {
                 this.cpu.stopClock();
             } else {
                 if(this.heldKey !== null && this.heldKey !== event.rawcode) {
@@ -44,9 +42,11 @@ class Keyboard {
                 this.twoKey = false;
             } else if(this.heldKey === event.rawcode) {
                 this.cpu.poke(keyPressedAddress, 0);
+                this.twoKey = false;
                 this.heldKey = null;
             } else {
                 this.cpu.poke(keyPressedAddress, 0);
+                this.twoKey = false;
             }
         });
         iohook.start();

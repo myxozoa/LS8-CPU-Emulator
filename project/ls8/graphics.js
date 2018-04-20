@@ -6,6 +6,7 @@ class Graphics {
     this.start();
     // ctx.fg(255, 255, 255);
     // ctx.bg(0, 0, 0);
+    this.clear = () => { ctx.clear(); }
 
     this.xCount = 0;
     this.yCount = 1;
@@ -23,8 +24,8 @@ class Graphics {
     ctx.clear();
     ctx.cursor.off();
 
-    // this.rawText(15,10, ctx.cols);
-    // this.rawText(20,10, ctx.rows);
+    this.rawText(15,10, ctx.cols);
+    this.rawText(20,10, ctx.rows);
   }
   text(char) {
     this.xCount++;
@@ -53,8 +54,8 @@ class Graphics {
     ctx.brush = ' ';
     ctx.cursor.reset();
     ctx.point(this.fixedX, this.fixedY);
-    this.fixedX = x % ctx.cols;
-    this.fixedY = y % ctx.rows;
+    this.fixedX = x;
+    this.fixedY = y;
     ctx.brush = '╔';
     ctx.point(this.fixedX, this.fixedY);
   }
@@ -64,7 +65,8 @@ class Graphics {
     // ctx.point(this.fixedX, this.fixedY);
     // this.fixedX = x % ctx.cols;
     // this.fixedY = y % ctx.rows;
-    ctx.brush = '▀';
+    // ctx.brush = '▀';
+    ctx.brush = '░';
     ctx.point(x, y);
   }
 

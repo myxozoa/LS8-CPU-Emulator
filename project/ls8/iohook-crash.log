@@ -1,0 +1,48 @@
+PID 9036 received SIGSEGV for address: 0x7f4f4008
+SymInit: Symbol-SearchPath: '.;C:\Users\admin\Documents\programming\lambda\Computer Architecture\Computer-Architecture-One\project\ls8;C:\Program Files\nodejs;C:\WINDOWS;C:\WINDOWS\system32;SRV*C:\websymbols*http://msdl.microsoft.com/download/symbols;', symOptions: 530, UserName: 'admin'
+OS-Version: 10.0.16299 () 0x100-0x1
+c:\users\admin\documents\programming\lambda\computer architecture\computer-architecture-one\project\ls8\node_modules\segfault-handler\src\stackwalker.cpp (941): StackWalker::ShowCallstack
+c:\users\admin\documents\programming\lambda\computer architecture\computer-architecture-one\project\ls8\node_modules\segfault-handler\src\segfault-handler.cpp (116): segfault_handler
+00007FF982D2F172 (ntdll): (filename not available): RtlUserThreadStart
+00007FF982CDCF8B (ntdll): (filename not available): RtlWalkFrameChain
+00007FF982CDB6E3 (ntdll): (filename not available): RtlRaiseException
+00007FF97F4F4008 (KERNELBASE): (filename not available): RaiseException
+00007FF97F4F40DE (KERNELBASE): (filename not available): OutputDebugStringW
+00007E1100014543 (ConEmuHk64): (filename not available): RequestLocalServer
+00007E1100005C94 (ConEmuHk64): (filename not available): WriteProcessedA
+00007E1100002DCA (ConEmuHk64): (filename not available): (function-name not available)
+00007E1100022B94 (ConEmuHk64): (filename not available): SetLoadLibraryCallback
+00007FF60A83E060 (node): (filename not available): uv_tty_get_winsize
+00007FF60A82FEF3 (node): (filename not available): uv_try_write
+00007FF60A61FB80 (node): (filename not available): RAND_egd
+00007FF60A61DA6A (node): (filename not available): RAND_egd
+00007FF60A620FA8 (node): (filename not available): RAND_egd
+00007FF60A936680 (node): (filename not available): v8::internal::CompilerDispatcherTracer::Estimate
+00007FF60A8EFC23 (node): (filename not available): v8::internal::CompilerDispatcher::RemoveJob
+00007FF60A8EE9F3 (node): (filename not available): v8::internal::CompilerDispatcher::RemoveJob
+00007FF60A8EE8DB (node): (filename not available): v8::internal::CompilerDispatcher::RemoveJob
+0000015CB7A847A1 ((module-name not available)): (filename not available): (function-name not available)
+PID 6572 received SIGSEGV for address: 0x7f4f4008
+SymInit: Symbol-SearchPath: '.;C:\Users\admin\Documents\programming\lambda\Computer Architecture\Computer-Architecture-One\project\ls8;C:\Program Files\nodejs;C:\WINDOWS;C:\WINDOWS\system32;SRV*C:\websymbols*http://msdl.microsoft.com/download/symbols;', symOptions: 530, UserName: 'admin'
+OS-Version: 10.0.16299 () 0x100-0x1
+c:\users\admin\documents\programming\lambda\computer architecture\computer-architecture-one\project\ls8\node_modules\segfault-handler\src\stackwalker.cpp (941): StackWalker::ShowCallstack
+c:\users\admin\documents\programming\lambda\computer architecture\computer-architecture-one\project\ls8\node_modules\segfault-handler\src\segfault-handler.cpp (116): segfault_handler
+00007FF982D2F172 (ntdll): (filename not available): RtlUserThreadStart
+00007FF982CDCF8B (ntdll): (filename not available): RtlWalkFrameChain
+00007FF982CDB6E3 (ntdll): (filename not available): RtlRaiseException
+00007FF97F4F4008 (KERNELBASE): (filename not available): RaiseException
+00007FF97F4F40DE (KERNELBASE): (filename not available): OutputDebugStringW
+00007E1100014543 (ConEmuHk64): (filename not available): RequestLocalServer
+00007E1100005C94 (ConEmuHk64): (filename not available): WriteProcessedA
+00007E1100002DCA (ConEmuHk64): (filename not available): (function-name not available)
+00007E1100022B94 (ConEmuHk64): (filename not available): SetLoadLibraryCallback
+00007FF60A83E060 (node): (filename not available): uv_tty_get_winsize
+00007FF60A82FEF3 (node): (filename not available): uv_try_write
+00007FF60A61FB80 (node): (filename not available): RAND_egd
+00007FF60A61DA6A (node): (filename not available): RAND_egd
+00007FF60A620FA8 (node): (filename not available): RAND_egd
+00007FF60A936680 (node): (filename not available): v8::internal::CompilerDispatcherTracer::Estimate
+00007FF60A8EFC23 (node): (filename not available): v8::internal::CompilerDispatcher::RemoveJob
+00007FF60A8EE9F3 (node): (filename not available): v8::internal::CompilerDispatcher::RemoveJob
+00007FF60A8EE8DB (node): (filename not available): v8::internal::CompilerDispatcher::RemoveJob
+00000126A6F047A1 ((module-name not available)): (filename not available): (function-name not available)
