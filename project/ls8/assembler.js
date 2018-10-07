@@ -79,6 +79,7 @@ const ops = {
   "LD":   { type: 2, code: '10011000' },
   "LDI":  { type: 8, code: '10011001' },
   "MUL":  { type: 2, code: '10101010' },
+  "MOD":  { type: 2, code: '10101100' },
   "NOP":  { type: 0, code: '00000000' },
   "NOT":  { type: 1, code: '01110000' },
   "OR":   { type: 2, code: '10110001' },
